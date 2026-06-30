@@ -291,25 +291,50 @@ function setStatusText(text){
   document.getElementById("gameStatus").innerText = text;
 }
 
+// Beberapa sumber CDN dicoba berurutan kalau salah satu gagal/lambat.
+const ENGINE_SOURCES = [
+  "https://unpkg.com/stockfish@11.0.0/src/stockfish.js",
+  "https://cdn.jsdelivr.net/npm/stockfish@11.0.0/src/stockfish.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js"
+];
+
+async function fetchEngineCode(){
+  let lastError = null;
+
+  for(const url of ENGINE_SOURCES){
+    try{
+      setStatusText("Memuat engine dari " + new URL(url).hostname + "...");
+      const res = await fetch(url);
+      if(!res.ok) throw new Error("HTTP " + res.status + " dari " + url);
+      const code = await res.text();
+      if(!code || code.length < 1000) throw new Error("Isi file tidak valid dari " + url);
+      return code;
+    }catch(err){
+      console.warn("Gagal load dari", url, err);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error("Semua sumber engine gagal dimuat.");
+}
+
 function initEngine(){
   return new Promise((resolve, reject) => {
-    setStatusText("Memuat engine catur...");
-
-    // Stockfish 11 (non-WASM, single-thread) - kompatibel tanpa header
-    // COOP/COEP khusus. Diambil via fetch lalu dijadikan Blob URL supaya
-    // Worker tidak diblokir kebijakan cross-origin browser.
-    fetch("https://unpkg.com/stockfish@11.0.0/src/stockfish.js")
-      .then(res => {
-        if(!res.ok) throw new Error("Gagal mengunduh engine (status " + res.status + ")");
-        return res.text();
-      })
+    fetchEngineCode()
       .then(code => {
         const blob = new Blob([code], { type: "application/javascript" });
         engine = new Worker(URL.createObjectURL(blob));
 
+        const readyTimeout = setTimeout(() => {
+          if(!engineReady){
+            reject(new Error("Engine timeout - tidak merespon setelah 15 detik."));
+          }
+        }, 15000);
+
         engine.onerror = function(err){
-          console.error("Engine worker error:", err);
-          setStatusText("Engine gagal dimuat. Coba refresh halaman.");
+          console.error("Engine worker error:", err.message || err);
+          clearTimeout(readyTimeout);
+          setStatusText("Engine error: " + (err.message || "tidak diketahui") + ". Lihat Console (F12) untuk detail.");
           reject(err);
         };
 
@@ -323,6 +348,7 @@ function initEngine(){
 
           if(line === "readyok" && !engineReady){
             engineReady = true;
+            clearTimeout(readyTimeout);
             resolve();
             return;
           }
@@ -349,8 +375,8 @@ function initEngine(){
         engine.postMessage("uci");
       })
       .catch(err => {
-        console.error("Gagal memuat Stockfish:", err);
-        setStatusText("Engine gagal dimuat. Periksa koneksi internet lalu refresh.");
+        console.error("Gagal memuat Stockfish dari semua sumber:", err);
+        setStatusText("Engine gagal dimuat: " + err.message + ". Buka Console (F12) untuk detail, atau pastikan file dibuka lewat server (bukan langsung dobel-klik).");
         reject(err);
       });
   });
