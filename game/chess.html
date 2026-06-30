@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chess Game</title>
+
+<link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+<style>
+:root{
+  --bg:#0b1020;
+  --card:#151b2e;
+  --soft:#1f2942;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --primary:#7c5cff;
+  --gold:#facc15;
+  --danger:#fb7185;
+  --green:#22c55e;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:radial-gradient(circle at top,#243056 0,#0b1020 48%);
+  color:var(--text);
+  min-height:100vh;
+}
+
+.chess-page{
+  max-width:520px;
+  margin:auto;
+  padding:18px 16px 110px;
+}
+
+.header{
+  text-align:center;
+  margin-bottom:18px;
+}
+
+.header h1{
+  margin:0;
+  font-size:1.7rem;
+}
+
+.header p{
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:.9rem;
+}
+
+.panel{
+  background:rgba(21,27,46,.88);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px;
+  padding:16px;
+  box-shadow:0 20px 45px rgba(0,0,0,.35);
+  backdrop-filter:blur(12px);
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.control{
+  background:var(--soft);
+  border-radius:16px;
+  padding:10px;
+}
+
+.control label{
+  display:block;
+  color:var(--muted);
+  font-size:.75rem;
+  margin-bottom:6px;
+}
+
+select,button{
+  width:100%;
+  border:none;
+  border-radius:12px;
+  padding:10px 12px;
+  font-weight:700;
+}
+
+select{
+  background:#0f172a;
+  color:var(--text);
+}
+
+button{
+  background:linear-gradient(135deg,var(--primary),#4f46e5);
+  color:white;
+  cursor:pointer;
+}
+
+button:active{transform:scale(.98)}
+
+.board-wrap{
+  background:#0f172a;
+  border-radius:18px;
+  padding:10px;
+  overflow:hidden;
+}
+
+#board{
+  width:100%;
+  max-width:460px;
+  margin:auto;
+}
+
+.status-box{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin:14px 0;
+}
+
+.status-card{
+  background:var(--soft);
+  border-radius:16px;
+  padding:12px;
+  text-align:center;
+}
+
+.status-card span{
+  display:block;
+  font-size:.72rem;
+  color:var(--muted);
+}
+
+.status-card strong{
+  font-size:1.2rem;
+}
+
+#gameStatus{
+  background:rgba(124,92,255,.14);
+  border:1px solid rgba(124,92,255,.25);
+  border-radius:16px;
+  padding:12px;
+  font-size:.9rem;
+  color:#ddd6fe;
+  text-align:center;
+}
+
+.move-list{
+  margin-top:14px;
+  max-height:130px;
+  overflow:auto;
+  background:#0f172a;
+  border-radius:14px;
+  padding:10px;
+  color:var(--muted);
+  font-size:.82rem;
+  line-height:1.7;
+}
+
+.theme-classic .white-1e1d7{background:#f0d9b5!important}
+.theme-classic .black-3c85d{background:#b58863!important}
+
+.theme-green .white-1e1d7{background:#d9f99d!important}
+.theme-green .black-3c85d{background:#15803d!important}
+
+.theme-blue .white-1e1d7{background:#dbeafe!important}
+.theme-blue .black-3c85d{background:#2563eb!important}
+
+.theme-gold .white-1e1d7{background:#fde68a!important}
+.theme-gold .black-3c85d{background:#92400e!important}
+
+@media(max-width:420px){
+  .controls{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+<main class="chess-page">
+  <div class="header">
+    <h1>Chess Legend</h1>
+    <p>Game catur dengan 5 level AI, timer, dan tema papan.</p>
+  </div>
+
+  <section class="panel">
+    <div class="controls">
+      <div class="control">
+        <label>Level AI</label>
+        <select id="level">
+          <option value="1">Level 1 - Pemula</option>
+          <option value="2">Level 2 - Santai</option>
+          <option value="3">Level 3 - Menengah</option>
+          <option value="4">Level 4 - Master</option>
+          <option value="5">Level 5 - Legend Magnus Mode</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label>Waktu</label>
+        <select id="timeMode">
+          <option value="60">1 Menit</option>
+          <option value="180">3 Menit</option>
+          <option value="600">10 Menit</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label>Tema Papan</label>
+        <select id="theme">
+          <option value="classic">Classic</option>
+          <option value="green">Hijau</option>
+          <option value="blue">Biru</option>
+          <option value="gold">Gold</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label>Game</label>
+        <button onclick="newGame()">Game Baru</button>
+      </div>
+    </div>
+
+    <div class="board-wrap">
+      <div id="board"></div>
+    </div>
+
+    <div class="status-box">
+      <div class="status-card">
+        <span>Kamu</span>
+        <strong id="whiteTime">03:00</strong>
+      </div>
+      <div class="status-card">
+        <span>AI</span>
+        <strong id="blackTime">03:00</strong>
+      </div>
+    </div>
+
+    <div id="gameStatus">Pilih bidak putih dan mulai bermain.</div>
+    <div class="move-list" id="moveList">Belum ada langkah.</div>
+  </section>
+</main>
+
+<script>
+let board;
+let game = new Chess();
+let engine;
+let playerTime = 180;
+let aiTime = 180;
+let timer = null;
+let turn = "w";
+let gameOver = false;
+
+const levelDepth = {
+  1: 1,
+  2: 3,
+  3: 6,
+  4: 10,
+  5: 15
+};
+
+function initEngine(){
+  if(engine) engine.terminate();
+
+  engine = new Worker("https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/stockfish.js");
+
+  engine.onmessage = function(event){
+    const line = event.data || "";
+
+    if(line.startsWith("bestmove")){
+      const moveText = line.split(" ")[1];
+
+      if(moveText && moveText !== "(none)"){
+        game.move({
+          from: moveText.substring(0,2),
+          to: moveText.substring(2,4),
+          promotion: "q"
+        });
+      }
+
+      board.position(game.fen());
+      turn = "w";
+      updateStatus();
+      updateMoveList();
+    }
+  };
+}
+
+function onDragStart(source, piece){
+  if(gameOver) return false;
+  if(game.turn() !== "w") return false;
+  if(piece.search(/^b/) !== -1) return false;
+}
+
+function onDrop(source, target){
+  const move = game.move({
+    from: source,
+    to: target,
+    promotion: "q"
+  });
+
+  if(move === null) return "snapback";
+
+  turn = "b";
+  updateStatus();
+  updateMoveList();
+
+  window.setTimeout(makeAIMove, 350);
+}
+
+function onSnapEnd(){
+  board.position(game.fen());
+}
+
+function makeAIMove(){
+  if(game.game_over()) return updateStatus();
+
+  const level = document.getElementById("level").value;
+  const depth = levelDepth[level];
+
+  engine.postMessage("uci");
+  engine.postMessage("position fen " + game.fen());
+  engine.postMessage("go depth " + depth);
+}
+
+function updateStatus(){
+  let status = "";
+
+  if(game.in_checkmate()){
+    gameOver = true;
+    status = game.turn() === "w" ? "Skakmat. AI menang." : "Skakmat. Kamu menang!";
+    clearInterval(timer);
+  }else if(game.in_draw()){
+    gameOver = true;
+    status = "Game seri.";
+    clearInterval(timer);
+  }else{
+    status = game.turn() === "w" ? "Giliran kamu." : "AI sedang berpikir...";
+    if(game.in_check()) status += " Raja sedang skak!";
+  }
+
+  document.getElementById("gameStatus").innerText = status;
+}
+
+function updateMoveList(){
+  const history = game.history();
+  if(history.length === 0){
+    document.getElementById("moveList").innerText = "Belum ada langkah.";
+    return;
+  }
+
+  let html = "";
+  for(let i=0;i<history.length;i+=2){
+    html += ((i/2)+1) + ". " + history[i] + " " + (history[i+1] || "") + "<br>";
+  }
+  document.getElementById("moveList").innerHTML = html;
+}
+
+function formatTime(sec){
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
+}
+
+function updateClock(){
+  document.getElementById("whiteTime").innerText = formatTime(playerTime);
+  document.getElementById("blackTime").innerText = formatTime(aiTime);
+}
+
+function startTimer(){
+  clearInterval(timer);
+  timer = setInterval(() => {
+    if(gameOver) return;
+
+    if(game.turn() === "w"){
+      playerTime--;
+      if(playerTime <= 0){
+        gameOver = true;
+        document.getElementById("gameStatus").innerText = "Waktu habis. AI menang.";
+        clearInterval(timer);
+      }
+    }else{
+      aiTime--;
+      if(aiTime <= 0){
+        gameOver = true;
+        document.getElementById("gameStatus").innerText = "Waktu AI habis. Kamu menang!";
+        clearInterval(timer);
+      }
+    }
+
+    updateClock();
+  },1000);
+}
+
+function applyTheme(){
+  document.body.classList.remove("theme-classic","theme-green","theme-blue","theme-gold");
+  document.body.classList.add("theme-" + document.getElementById("theme").value);
+}
+
+function newGame(){
+  game = new Chess();
+  gameOver = false;
+
+  const selectedTime = Number(document.getElementById("timeMode").value);
+  playerTime = selectedTime;
+  aiTime = selectedTime;
+
+  board.position("start");
+  updateClock();
+  updateStatus();
+  updateMoveList();
+  applyTheme();
+  startTimer();
+}
+
+document.getElementById("theme").addEventListener("change", applyTheme);
+
+board = Chessboard("board", {
+  draggable:true,
+  position:"start",
+  onDragStart:onDragStart,
+  onDrop:onDrop,
+  onSnapEnd:onSnapEnd
+});
+
+initEngine();
+newGame();
+</script>
+</body>
+</html>
