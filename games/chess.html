@@ -97,6 +97,11 @@ select{
   color:var(--text);
 }
 
+select:disabled, button:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
 button{
   background:linear-gradient(135deg,var(--primary),#4f46e5);
   color:white;
@@ -110,6 +115,7 @@ button:active{transform:scale(.98)}
   border-radius:18px;
   padding:10px;
   overflow:hidden;
+  position:relative;
 }
 
 #board{
@@ -142,6 +148,10 @@ button:active{transform:scale(.98)}
   font-size:1.2rem;
 }
 
+.status-card.active{
+  box-shadow:0 0 0 2px var(--primary) inset;
+}
+
 #gameStatus{
   background:rgba(124,92,255,.14);
   border:1px solid rgba(124,92,255,.25);
@@ -150,6 +160,7 @@ button:active{transform:scale(.98)}
   font-size:.9rem;
   color:#ddd6fe;
   text-align:center;
+  min-height:1.2em;
 }
 
 .move-list{
@@ -162,6 +173,13 @@ button:active{transform:scale(.98)}
   color:var(--muted);
   font-size:.82rem;
   line-height:1.7;
+}
+
+.engine-note{
+  text-align:center;
+  font-size:.72rem;
+  color:var(--muted);
+  margin-top:10px;
 }
 
 .theme-classic .white-1e1d7{background:#f0d9b5!important}
@@ -223,7 +241,7 @@ button:active{transform:scale(.98)}
 
       <div class="control">
         <label>Game</label>
-        <button onclick="newGame()">Game Baru</button>
+        <button id="newGameBtn" onclick="newGame()">Game Baru</button>
       </div>
     </div>
 
@@ -232,68 +250,114 @@ button:active{transform:scale(.98)}
     </div>
 
     <div class="status-box">
-      <div class="status-card">
+      <div class="status-card" id="whiteCard">
         <span>Kamu</span>
         <strong id="whiteTime">03:00</strong>
       </div>
-      <div class="status-card">
+      <div class="status-card" id="blackCard">
         <span>AI</span>
         <strong id="blackTime">03:00</strong>
       </div>
     </div>
 
-    <div id="gameStatus">Pilih bidak putih dan mulai bermain.</div>
+    <div id="gameStatus">Memuat engine catur...</div>
     <div class="move-list" id="moveList">Belum ada langkah.</div>
+    <div class="engine-note" id="engineNote"></div>
   </section>
 </main>
 
 <script>
 let board;
 let game = new Chess();
-let engine;
+let engine = null;
+let engineReady = false;
 let playerTime = 180;
 let aiTime = 180;
 let timer = null;
-let turn = "w";
 let gameOver = false;
+let pendingAIMove = false;
 
-const levelDepth = {
-  1: 1,
-  2: 3,
-  3: 6,
-  4: 10,
-  5: 15
+// Kombinasi skill level (0-20) + depth per level, biar terasa lebih manusiawi
+// di level rendah dan benar-benar kuat di level atas.
+const levelConfig = {
+  1: { skill: 0,  depth: 2  },
+  2: { skill: 5,  depth: 4  },
+  3: { skill: 10, depth: 8  },
+  4: { skill: 15, depth: 12 },
+  5: { skill: 20, depth: 18 }
 };
 
+function setStatusText(text){
+  document.getElementById("gameStatus").innerText = text;
+}
+
 function initEngine(){
-  if(engine) engine.terminate();
+  return new Promise((resolve, reject) => {
+    setStatusText("Memuat engine catur...");
 
-  engine = new Worker("https://cdn.jsdelivr.net/npm/stockfish@16.0.0/src/stockfish.js");
+    // Stockfish 11 (non-WASM, single-thread) - kompatibel tanpa header
+    // COOP/COEP khusus. Diambil via fetch lalu dijadikan Blob URL supaya
+    // Worker tidak diblokir kebijakan cross-origin browser.
+    fetch("https://unpkg.com/stockfish@11.0.0/src/stockfish.js")
+      .then(res => {
+        if(!res.ok) throw new Error("Gagal mengunduh engine (status " + res.status + ")");
+        return res.text();
+      })
+      .then(code => {
+        const blob = new Blob([code], { type: "application/javascript" });
+        engine = new Worker(URL.createObjectURL(blob));
 
-  engine.onmessage = function(event){
-    const line = event.data || "";
+        engine.onerror = function(err){
+          console.error("Engine worker error:", err);
+          setStatusText("Engine gagal dimuat. Coba refresh halaman.");
+          reject(err);
+        };
 
-    if(line.startsWith("bestmove")){
-      const moveText = line.split(" ")[1];
+        engine.onmessage = function(event){
+          const line = event.data || "";
 
-      if(moveText && moveText !== "(none)"){
-        game.move({
-          from: moveText.substring(0,2),
-          to: moveText.substring(2,4),
-          promotion: "q"
-        });
-      }
+          if(line === "uciok"){
+            engine.postMessage("isready");
+            return;
+          }
 
-      board.position(game.fen());
-      turn = "w";
-      updateStatus();
-      updateMoveList();
-    }
-  };
+          if(line === "readyok" && !engineReady){
+            engineReady = true;
+            resolve();
+            return;
+          }
+
+          if(line.startsWith("bestmove")){
+            const moveText = line.split(" ")[1];
+
+            if(moveText && moveText !== "(none)"){
+              game.move({
+                from: moveText.substring(0,2),
+                to: moveText.substring(2,4),
+                promotion: "q"
+              });
+            }
+
+            board.position(game.fen());
+            pendingAIMove = false;
+            updateStatus();
+            updateMoveList();
+            updateActiveCard();
+          }
+        };
+
+        engine.postMessage("uci");
+      })
+      .catch(err => {
+        console.error("Gagal memuat Stockfish:", err);
+        setStatusText("Engine gagal dimuat. Periksa koneksi internet lalu refresh.");
+        reject(err);
+      });
+  });
 }
 
 function onDragStart(source, piece){
-  if(gameOver) return false;
+  if(gameOver || !engineReady || pendingAIMove) return false;
   if(game.turn() !== "w") return false;
   if(piece.search(/^b/) !== -1) return false;
 }
@@ -307,9 +371,9 @@ function onDrop(source, target){
 
   if(move === null) return "snapback";
 
-  turn = "b";
   updateStatus();
   updateMoveList();
+  updateActiveCard();
 
   window.setTimeout(makeAIMove, 350);
 }
@@ -319,14 +383,16 @@ function onSnapEnd(){
 }
 
 function makeAIMove(){
-  if(game.game_over()) return updateStatus();
+  if(game.game_over() || !engineReady) return updateStatus();
+
+  pendingAIMove = true;
 
   const level = document.getElementById("level").value;
-  const depth = levelDepth[level];
+  const config = levelConfig[level];
 
-  engine.postMessage("uci");
+  engine.postMessage("setoption name Skill Level value " + config.skill);
   engine.postMessage("position fen " + game.fen());
-  engine.postMessage("go depth " + depth);
+  engine.postMessage("go depth " + config.depth);
 }
 
 function updateStatus(){
@@ -345,7 +411,12 @@ function updateStatus(){
     if(game.in_check()) status += " Raja sedang skak!";
   }
 
-  document.getElementById("gameStatus").innerText = status;
+  setStatusText(status);
+}
+
+function updateActiveCard(){
+  document.getElementById("whiteCard").classList.toggle("active", game.turn() === "w" && !gameOver);
+  document.getElementById("blackCard").classList.toggle("active", game.turn() === "b" && !gameOver);
 }
 
 function updateMoveList(){
@@ -382,14 +453,14 @@ function startTimer(){
       playerTime--;
       if(playerTime <= 0){
         gameOver = true;
-        document.getElementById("gameStatus").innerText = "Waktu habis. AI menang.";
+        setStatusText("Waktu habis. AI menang.");
         clearInterval(timer);
       }
     }else{
       aiTime--;
       if(aiTime <= 0){
         gameOver = true;
-        document.getElementById("gameStatus").innerText = "Waktu AI habis. Kamu menang!";
+        setStatusText("Waktu AI habis. Kamu menang!");
         clearInterval(timer);
       }
     }
@@ -406,6 +477,7 @@ function applyTheme(){
 function newGame(){
   game = new Chess();
   gameOver = false;
+  pendingAIMove = false;
 
   const selectedTime = Number(document.getElementById("timeMode").value);
   playerTime = selectedTime;
@@ -413,10 +485,16 @@ function newGame(){
 
   board.position("start");
   updateClock();
-  updateStatus();
   updateMoveList();
   applyTheme();
-  startTimer();
+  updateActiveCard();
+
+  if(engineReady){
+    setStatusText("Giliran kamu.");
+    startTimer();
+  }else{
+    setStatusText("Menunggu engine siap...");
+  }
 }
 
 document.getElementById("theme").addEventListener("change", applyTheme);
@@ -429,8 +507,18 @@ board = Chessboard("board", {
   onSnapEnd:onSnapEnd
 });
 
-initEngine();
-newGame();
+// Disable kontrol sampai engine siap, supaya user tidak main sebelum AI bisa jalan
+document.getElementById("newGameBtn").disabled = true;
+
+initEngine()
+  .then(() => {
+    document.getElementById("newGameBtn").disabled = false;
+    document.getElementById("engineNote").innerText = "Engine: Stockfish 11";
+    newGame();
+  })
+  .catch(() => {
+    document.getElementById("engineNote").innerText = "Engine gagal dimuat — coba refresh halaman.";
+  });
 </script>
 </body>
 </html>
