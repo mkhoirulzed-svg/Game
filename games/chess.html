@@ -293,7 +293,28 @@ button:active{transform:scale(.98)}
   </div>
 
   <section class="panel">
- <div class="controls" id="settingsPanel">
+    <div class="board-wrap">
+      <div id="board"></div>
+      <div class="start-overlay" id="startOverlay">
+        <button id="startBtn" onclick="newGame()" disabled>Memuat engine...</button>
+      </div>
+      <div class="compact-actions">
+    <button onclick="toggleSettings()">⚙️ Pengaturan</button>
+    <button onclick="newGame()">🔄 Game Baru</button>
+</div>
+    </div>
+
+    <div class="status-box">
+      <div class="status-card" id="whiteCard">
+        <span>Kamu</span>
+        <strong id="whiteTime">03:00</strong>
+      </div>
+      <div class="status-card" id="blackCard">
+        <span>AI</span>
+        <strong id="blackTime">03:00</strong>
+      </div>
+    </div>
+     <div class="controls" id="settingsPanel">
       <div class="control">
         <label>Level AI</label>
         <select id="level">
@@ -334,29 +355,6 @@ button:active{transform:scale(.98)}
         <button id="soundToggleBtn" onclick="toggleSound()">🔊 Suara On</button>
       </div>
     </div>
-
-    <div class="board-wrap">
-      <div id="board"></div>
-      <div class="start-overlay" id="startOverlay">
-        <button id="startBtn" onclick="newGame()" disabled>Memuat engine...</button>
-      </div>
-      <div class="compact-actions">
-    <button onclick="toggleSettings()">⚙️ Pengaturan</button>
-    <button onclick="newGame()">🔄 Game Baru</button>
-</div>
-    </div>
-
-    <div class="status-box">
-      <div class="status-card" id="whiteCard">
-        <span>Kamu</span>
-        <strong id="whiteTime">03:00</strong>
-      </div>
-      <div class="status-card" id="blackCard">
-        <span>AI</span>
-        <strong id="blackTime">03:00</strong>
-      </div>
-    </div>
-
     <div id="gameStatus">Memuat engine catur...</div>
     <div class="move-list" id="moveList">Belum ada langkah.</div>
     <div class="engine-note" id="engineNote"></div>
