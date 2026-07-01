@@ -257,6 +257,31 @@ button:active{transform:scale(.98)}
 #board .square-55d63{
   cursor:pointer;
 }
+
+  .compact-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin:14px 0;
+}
+
+#settingsPanel{
+    overflow:hidden;
+    transition:.35s ease;
+}
+
+#settingsPanel.hide{
+    max-height:0;
+    opacity:0;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+}
+
+#settingsPanel.show{
+    max-height:500px;
+    opacity:1;
+}
 </style>
 </head>
 
@@ -268,7 +293,7 @@ button:active{transform:scale(.98)}
   </div>
 
   <section class="panel">
-    <div class="controls">
+ <div class="controls" id="settingsPanel">
       <div class="control">
         <label>Level AI</label>
         <select id="level">
@@ -315,6 +340,10 @@ button:active{transform:scale(.98)}
       <div class="start-overlay" id="startOverlay">
         <button id="startBtn" onclick="newGame()" disabled>Memuat engine...</button>
       </div>
+      <div class="compact-actions">
+    <button onclick="toggleSettings()">⚙️ Pengaturan</button>
+    <button onclick="newGame()">🔄 Game Baru</button>
+</div>
     </div>
 
     <div class="status-box">
@@ -713,6 +742,12 @@ function startTimer(){
   },1000);
 }
 
+  function toggleSettings(){
+    document
+        .getElementById("settingsPanel")
+        .classList.toggle("hide");
+}
+
 function applyTheme(){
   document.body.classList.remove("theme-classic","theme-green","theme-blue","theme-gold");
   document.body.classList.add("theme-" + document.getElementById("theme").value);
@@ -720,6 +755,10 @@ function applyTheme(){
 
 function newGame(){
   gameStarted = true;
+
+document
+    .getElementById("settingsPanel")
+    .classList.add("hide");
   document.getElementById("startOverlay").classList.add("hidden");
   ensureAudioContext();
   playStartTone();
@@ -755,6 +794,7 @@ board = Chessboard("board", {
   pieceTheme:"data/chess/img/chesspieces/wikipedia/{piece}.png"
 });
 
+  
 // Disable kontrol sampai engine siap, supaya user tidak main sebelum AI bisa jalan
 document.getElementById("newGameBtn").disabled = true;
 
