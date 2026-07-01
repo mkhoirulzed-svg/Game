@@ -1,11 +1,17 @@
 .app-header{
   position:fixed;
   top:0;
+  left:50%;
+  transform:translateX(-50%);
   z-index:10;
-  margin:0 0 18px;
+
+  width:100%;
+  max-width:480px;
+
   padding:18px 18px 14px;
   background:rgba(9,11,16,.78);
   backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
   border-bottom:1px solid var(--line);
 }
 
