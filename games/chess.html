@@ -10,6 +10,9 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/header.css">
+<link rel="stylesheet" href="css/footer.css">
 
 <style>
 :root{
@@ -286,10 +289,10 @@ button:active{transform:scale(.98)}
 </head>
 
 <body>
+  <div id="header"></div>
 <main class="chess-page">
   <div class="header">
     <h1>Chess Legend</h1>
-    <p>Game catur dengan 5 level AI, timer, dan tema papan.</p>
   </div>
 
   <section class="panel">
@@ -322,17 +325,18 @@ button:active{transform:scale(.98)}
           <option value="2">Level 2 - Santai</option>
           <option value="3">Level 3 - Menengah</option>
           <option value="4">Level 4 - Master</option>
-          <option value="5">Level 5 - Legend Magnus Mode</option>
+          <option value="5">Level 5 - Legend</option>
         </select>
       </div>
 
       <div class="control">
         <label>Waktu</label>
-        <select id="timeMode">
-          <option value="60">1 Menit</option>
-          <option value="180">3 Menit</option>
-          <option value="600">10 Menit</option>
-        </select>
+       <select id="timeMode">
+  <option value="0">Tanpa Waktu</option>
+  <option value="60">1 Menit</option>
+  <option value="180" selected>3 Menit</option>
+  <option value="600">10 Menit</option>
+</select>
       </div>
 
       <div class="control">
@@ -360,7 +364,8 @@ button:active{transform:scale(.98)}
     <div class="engine-note" id="engineNote"></div>
   </section>
 </main>
-
+ <div id="footer"></div>
+  <script src="js/loader.js"></script>
 <script>
 let board;
 let game = new Chess();
@@ -714,6 +719,9 @@ function updateClock(){
 }
 
 function startTimer(){
+  if(playerTime === 0 && aiTime === 0){
+    return;
+}
   clearInterval(timer);
   timer = setInterval(() => {
     if(gameOver) return;
@@ -767,18 +775,17 @@ document
   removeLegalHighlights();
 
   const selectedTime = Number(document.getElementById("timeMode").value);
-  playerTime = selectedTime;
-  aiTime = selectedTime;
 
-  board.position("start");
-  updateClock();
-  updateMoveList();
-  applyTheme();
-  updateActiveCard();
+playerTime = selectedTime;
+aiTime = selectedTime;
 
-  if(engineReady){
-    setStatusText("Giliran kamu.");
+if(selectedTime === 0){
+    document.getElementById("whiteTime").innerText = "∞";
+    document.getElementById("blackTime").innerText = "∞";
+}else{
+    updateClock();
     startTimer();
+}
   }else{
     setStatusText("Menunggu engine siap...");
   }
