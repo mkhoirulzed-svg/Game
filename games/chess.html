@@ -762,43 +762,45 @@ function applyTheme(){
 function newGame(){
   gameStarted = true;
 
-document
-    .getElementById("settingsPanel")
-    .classList.add("hide");
+  document.getElementById("settingsPanel").classList.add("hide");
   document.getElementById("startOverlay").classList.add("hidden");
+
   ensureAudioContext();
   playStartTone();
 
   game = new Chess();
   gameOver = false;
   pendingAIMove = false;
-  removeLegalHighlights();
+  clearSelection();
 
   const selectedTime = Number(document.getElementById("timeMode").value);
 
-playerTime = selectedTime;
-aiTime = selectedTime;
+  playerTime = selectedTime;
+  aiTime = selectedTime;
 
-if(selectedTime === 0){
+  board.position("start");
+  updateMoveList();
+  applyTheme();
+  updateActiveCard();
+
+  if(selectedTime === 0){
+    clearInterval(timer);
     document.getElementById("whiteTime").innerText = "∞";
     document.getElementById("blackTime").innerText = "∞";
-}else{
+  }else{
     updateClock();
-    startTimer();
-}
+  }
+
+  if(engineReady){
+    setStatusText("Giliran kamu.");
+
+    if(selectedTime !== 0){
+      startTimer();
+    }
   }else{
     setStatusText("Menunggu engine siap...");
   }
 }
-
-document.getElementById("theme").addEventListener("change", applyTheme);
-
-board = Chessboard("board", {
-  draggable:false,
-  position:"start",
-  pieceTheme:"data/chess/img/chesspieces/wikipedia/{piece}.png"
-});
-
   
 // Disable kontrol sampai engine siap, supaya user tidak main sebelum AI bisa jalan
 document.getElementById("newGameBtn").disabled = true;
