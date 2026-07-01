@@ -291,94 +291,77 @@ function setStatusText(text){
   document.getElementById("gameStatus").innerText = text;
 }
 
-// Beberapa sumber CDN dicoba berurutan kalau salah satu gagal/lambat.
-const ENGINE_SOURCES = [
-  "https://unpkg.com/stockfish@11.0.0/src/stockfish.js",
-  "https://cdn.jsdelivr.net/npm/stockfish@11.0.0/src/stockfish.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js"
-];
-
-async function fetchEngineCode(){
-  let lastError = null;
-
-  for(const url of ENGINE_SOURCES){
-    try{
-      setStatusText("Memuat engine dari " + new URL(url).hostname + "...");
-      const res = await fetch(url);
-      if(!res.ok) throw new Error("HTTP " + res.status + " dari " + url);
-      const code = await res.text();
-      if(!code || code.length < 1000) throw new Error("Isi file tidak valid dari " + url);
-      return code;
-    }catch(err){
-      console.warn("Gagal load dari", url, err);
-      lastError = err;
-    }
-  }
-
-  throw lastError || new Error("Semua sumber engine gagal dimuat.");
-}
+// Path lokal ke file engine yang sudah kamu self-host.
+// Download build single-file (asm.js, tanpa dependency wasm terpisah) dari:
+// https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js
+// lalu simpan sebagai data/chess/stockfish.js
+const ENGINE_PATH = "data/chess/stockfish.js";
 
 function initEngine(){
   return new Promise((resolve, reject) => {
-    fetchEngineCode()
-      .then(code => {
-        const blob = new Blob([code], { type: "application/javascript" });
-        engine = new Worker(URL.createObjectURL(blob));
+    setStatusText("Memuat engine dari " + ENGINE_PATH + "...");
 
-        const readyTimeout = setTimeout(() => {
-          if(!engineReady){
-            reject(new Error("Engine timeout - tidak merespon setelah 15 detik."));
-          }
-        }, 15000);
+    try{
+      engine = new Worker(ENGINE_PATH);
+    }catch(err){
+      reject(err);
+      return;
+    }
 
-        engine.onerror = function(err){
-          console.error("Engine worker error:", err.message || err);
-          clearTimeout(readyTimeout);
-          setStatusText("Engine error: " + (err.message || "tidak diketahui") + ". Lihat Console (F12) untuk detail.");
-          reject(err);
-        };
+    const readyTimeout = setTimeout(() => {
+      if(!engineReady){
+        reject(new Error(
+          "Engine timeout - tidak merespon setelah 15 detik. " +
+          "Cek apakah file " + ENGINE_PATH + " ada, dan pastikan halaman dibuka lewat server (http://), bukan dobel-klik file (file://)."
+        ));
+      }
+    }, 15000);
 
-        engine.onmessage = function(event){
-          const line = event.data || "";
+    engine.onerror = function(err){
+      console.error("Engine worker error:", err.message || err);
+      clearTimeout(readyTimeout);
+      setStatusText(
+        "Engine error: file " + ENGINE_PATH + " tidak ditemukan / gagal dimuat. " +
+        "Cek Console (F12) untuk detail, dan pastikan path-nya benar."
+      );
+      reject(err);
+    };
 
-          if(line === "uciok"){
-            engine.postMessage("isready");
-            return;
-          }
+    engine.onmessage = function(event){
+      const line = event.data || "";
 
-          if(line === "readyok" && !engineReady){
-            engineReady = true;
-            clearTimeout(readyTimeout);
-            resolve();
-            return;
-          }
+      if(line === "uciok"){
+        engine.postMessage("isready");
+        return;
+      }
 
-          if(line.startsWith("bestmove")){
-            const moveText = line.split(" ")[1];
+      if(line === "readyok" && !engineReady){
+        engineReady = true;
+        clearTimeout(readyTimeout);
+        resolve();
+        return;
+      }
 
-            if(moveText && moveText !== "(none)"){
-              game.move({
-                from: moveText.substring(0,2),
-                to: moveText.substring(2,4),
-                promotion: "q"
-              });
-            }
+      if(line.startsWith("bestmove")){
+        const moveText = line.split(" ")[1];
 
-            board.position(game.fen());
-            pendingAIMove = false;
-            updateStatus();
-            updateMoveList();
-            updateActiveCard();
-          }
-        };
+        if(moveText && moveText !== "(none)"){
+          game.move({
+            from: moveText.substring(0,2),
+            to: moveText.substring(2,4),
+            promotion: "q"
+          });
+        }
 
-        engine.postMessage("uci");
-      })
-      .catch(err => {
-        console.error("Gagal memuat Stockfish dari semua sumber:", err);
-        setStatusText("Engine gagal dimuat: " + err.message + ". Buka Console (F12) untuk detail, atau pastikan file dibuka lewat server (bukan langsung dobel-klik).");
-        reject(err);
-      });
+        board.position(game.fen());
+        pendingAIMove = false;
+        updateStatus();
+        updateMoveList();
+        updateActiveCard();
+      }
+    };
+
+    engine.postMessage("uci");
   });
 }
 
@@ -540,11 +523,12 @@ document.getElementById("newGameBtn").disabled = true;
 initEngine()
   .then(() => {
     document.getElementById("newGameBtn").disabled = false;
-    document.getElementById("engineNote").innerText = "Engine: Stockfish 11";
+    document.getElementById("engineNote").innerText = "Engine: Stockfish 10 (self-hosted)";
     newGame();
   })
-  .catch(() => {
-    document.getElementById("engineNote").innerText = "Engine gagal dimuat — coba refresh halaman.";
+  .catch((err) => {
+    console.error(err);
+    document.getElementById("engineNote").innerText = "Engine gagal dimuat — cek path file & Console (F12).";
   });
 </script>
 </body>
