@@ -800,6 +800,11 @@ function newGame(){
   updateMoveList();
   updateActiveCard();
 }
+  board = Chessboard("board", {
+  draggable:false,
+  position:"start",
+  pieceTheme:"data/chess/img/chesspieces/wikipedia/{piece}.png"
+});
   
 // Disable kontrol sampai engine siap, supaya user tidak main sebelum AI bisa jalan
 document.getElementById("newGameBtn").disabled = true;
