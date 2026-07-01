@@ -272,6 +272,11 @@ button:active{transform:scale(.98)}
         <label>Game</label>
         <button id="newGameBtn" onclick="newGame()">Game Baru</button>
       </div>
+
+      <div class="control">
+        <label>Suara</label>
+        <button id="soundToggleBtn" onclick="toggleSound()">🔊 Suara On</button>
+      </div>
     </div>
 
     <div class="board-wrap">
@@ -322,6 +327,83 @@ const levelConfig = {
 
 function setStatusText(text){
   document.getElementById("gameStatus").innerText = text;
+}
+
+// --- Sound effects (Web Audio API, tanpa file eksternal) ---
+let audioCtx = null;
+let soundEnabled = true;
+
+function ensureAudioContext(){
+  if(!audioCtx){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+    audioCtx = new AC();
+  }
+  if(audioCtx.state === "suspended"){
+    audioCtx.resume();
+  }
+}
+
+function playTone(freq, duration, type, volume){
+  if(!soundEnabled || !audioCtx) return;
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = type || "sine";
+  osc.frequency.value = freq;
+
+  gain.gain.setValueAtTime(volume || 0.2, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function playMoveTone(){
+  playTone(520, 0.09, "sine", 0.18);
+}
+
+function playCaptureTone(){
+  playTone(300, 0.12, "square", 0.16);
+}
+
+function playCheckTone(){
+  playTone(760, 0.14, "triangle", 0.22);
+  setTimeout(() => playTone(600, 0.14, "triangle", 0.18), 90);
+}
+
+function playGameOverTone(){
+  playTone(220, 0.25, "sawtooth", 0.2);
+  setTimeout(() => playTone(180, 0.35, "sawtooth", 0.18), 150);
+}
+
+function playStartTone(){
+  playTone(440, 0.1, "sine", 0.15);
+  setTimeout(() => playTone(660, 0.15, "sine", 0.15), 100);
+}
+
+function playSoundForMove(move){
+  if(!move) return;
+
+  if(game.game_over()){
+    playGameOverTone();
+  }else if(game.in_check()){
+    playCheckTone();
+  }else if(move.captured){
+    playCaptureTone();
+  }else{
+    playMoveTone();
+  }
+}
+
+function toggleSound(){
+  soundEnabled = !soundEnabled;
+  document.getElementById("soundToggleBtn").innerText = soundEnabled ? "🔊 Suara On" : "🔇 Suara Off";
+  if(soundEnabled) ensureAudioContext();
 }
 
 // Path lokal ke file engine yang sudah kamu self-host.
@@ -401,11 +483,12 @@ function attachEngineHandlers(resolve, reject){
         const moveText = line.split(" ")[1];
 
         if(moveText && moveText !== "(none)"){
-          game.move({
+          const aiMove = game.move({
             from: moveText.substring(0,2),
             to: moveText.substring(2,4),
             promotion: "q"
           });
+          playSoundForMove(aiMove);
         }
 
         board.position(game.fen());
@@ -462,6 +545,7 @@ function onDrop(source, target){
 
   if(move === null) return "snapback";
 
+  playSoundForMove(move);
   updateStatus();
   updateMoveList();
   updateActiveCard();
@@ -546,6 +630,7 @@ function startTimer(){
         gameOver = true;
         setStatusText("Waktu habis. AI menang.");
         clearInterval(timer);
+        playGameOverTone();
       }
     }else{
       aiTime--;
@@ -553,6 +638,7 @@ function startTimer(){
         gameOver = true;
         setStatusText("Waktu AI habis. Kamu menang!");
         clearInterval(timer);
+        playGameOverTone();
       }
     }
 
@@ -568,6 +654,8 @@ function applyTheme(){
 function newGame(){
   gameStarted = true;
   document.getElementById("startOverlay").classList.add("hidden");
+  ensureAudioContext();
+  playStartTone();
 
   game = new Chess();
   gameOver = false;
