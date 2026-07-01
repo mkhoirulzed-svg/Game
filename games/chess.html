@@ -302,13 +302,35 @@ function initEngine(){
   return new Promise((resolve, reject) => {
     setStatusText("Memuat engine dari " + ENGINE_PATH + "...");
 
-    try{
-      engine = new Worker(ENGINE_PATH);
-    }catch(err){
-      reject(err);
-      return;
-    }
+    // Worker dibuat lewat Blob (bukan langsung dari URL file), supaya Worker
+    // ikut mewarisi Content-Security-Policy dari meta tag halaman ini
+    // (termasuk 'unsafe-eval' yang dibutuhkan build asm.js Stockfish).
+    // Worker dari URL file biasa TIDAK mewarisi CSP dari meta tag.
+    fetch(ENGINE_PATH)
+      .then(res => {
+        if(!res.ok) throw new Error("HTTP " + res.status + " saat mengambil " + ENGINE_PATH);
+        return res.text();
+      })
+      .then(code => {
+        if(!code || code.length < 500) throw new Error("Isi file " + ENGINE_PATH + " kosong/tidak valid.");
 
+        const blob = new Blob([code], { type: "application/javascript" });
+        engine = new Worker(URL.createObjectURL(blob));
+        attachEngineHandlers(resolve, reject);
+        engine.postMessage("uci");
+      })
+      .catch(err => {
+        console.error("Gagal memuat engine:", err);
+        setStatusText(
+          "Engine gagal dimuat: " + err.message + ". " +
+          "Cek apakah file " + ENGINE_PATH + " benar-benar ada di repo, dan halaman dibuka lewat server (http://), bukan file://."
+        );
+        reject(err);
+      });
+  });
+}
+
+function attachEngineHandlers(resolve, reject){
     const readyTimeout = setTimeout(() => {
       if(!engineReady){
         reject(new Error(
@@ -361,9 +383,6 @@ function initEngine(){
         updateActiveCard();
       }
     };
-
-    engine.postMessage("uci");
-  });
 }
 
 function onDragStart(source, piece){
