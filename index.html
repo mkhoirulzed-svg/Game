@@ -1,129 +1,191 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Boring Game</title>
-  <link rel="stylesheet" href="css/header.css">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="css/footer.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="description" content="Belajar dan bermain catur dengan pelatih yang ramah untuk pemula.">
+  <title>Langkah Juara — Belajar Catur</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <div id="header"></div>
-<main class="app">
-  <div class="section-title">
-    <h3>Daftar Game</h3>
-    <span id="gameCount">8 game</span>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navigasi utama">
+      <a class="brand" href="index.html" aria-label="Langkah Juara">
+        <span class="brand-mark">♞</span>
+        <span>
+          <strong>Langkah Juara</strong>
+          <small>Belajar dari setiap langkah</small>
+        </span>
+      </a>
+
+      <nav class="side-nav">
+        <a class="nav-link active" href="index.html"><span>⌂</span>Beranda</a>
+        <a class="nav-link" href="games/chess.html"><span>♟</span>Main</a>
+        <button class="nav-link is-locked" type="button" data-coming-soon><span>◇</span>Belajar</button>
+        <button class="nav-link is-locked" type="button" data-coming-soon><span>◎</span>Profil</button>
+      </nav>
+
+      <div class="sidebar-tip">
+        <span>💡</span>
+        <p>Sedikit latihan setiap hari lebih baik daripada latihan panjang sesekali.</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">SELAMAT DATANG</p>
+          <h1>Siap melangkah hari ini?</h1>
+        </div>
+        <button class="profile-button" type="button" data-coming-soon aria-label="Buka profil">
+          <span>♟</span>
+        </button>
+      </header>
+
+      <section class="hero-card">
+        <div class="hero-copy">
+          <span class="hero-label">PERMAINAN TERAKHIR</span>
+          <h2>Setiap kesalahan adalah satu langkah menuju kemenangan.</h2>
+          <p>Main melawan pelatih catur, dapatkan kesempatan kedua, dan pahami alasan di balik setiap langkah.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="games/chess.html">▶ Mulai bermain</a>
+            <button class="button button-ghost" type="button" data-coming-soon>Pelajari dasar</button>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="chess-orbit orbit-one"></div>
+          <div class="chess-orbit orbit-two"></div>
+          <span class="hero-knight">♞</span>
+          <span class="floating-piece piece-one">♙</span>
+          <span class="floating-piece piece-two">♜</span>
+        </div>
+      </section>
+
+      <div class="dashboard-grid">
+        <section class="panel daily-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">LATIHAN SINGKAT</p>
+              <h2>Misi hari ini</h2>
+            </div>
+            <span class="streak">🔥 1 hari</span>
+          </div>
+
+          <div class="mission-card">
+            <div class="mission-icon">♚</div>
+            <div class="mission-copy">
+              <strong>Lindungi rajamu</strong>
+              <p>Lakukan rokade sebelum langkah ke-10.</p>
+              <div class="progress-track"><span style="width: 20%"></span></div>
+              <small>0 dari 1 misi selesai</small>
+            </div>
+            <a class="circle-button" href="games/chess.html" aria-label="Mulai misi">›</a>
+          </div>
+        </section>
+
+        <section class="panel progress-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">PERKEMBANGAN</p>
+              <h2>Perjalananmu</h2>
+            </div>
+          </div>
+          <div class="level-summary">
+            <div class="level-ring"><span>1</span></div>
+            <div>
+              <strong>Pemula</strong>
+              <p>Mulai petualangan caturnya.</p>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div><strong>0</strong><span>Permainan</span></div>
+            <div><strong>0</strong><span>Kemenangan</span></div>
+            <div><strong>0</strong><span>Pelajaran</span></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="content-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PILIH LAWAN</p>
+            <h2>Temui teman berlatihmu</h2>
+          </div>
+          <a class="text-link" href="games/chess.html">Lihat semua →</a>
+        </div>
+
+        <div class="bot-grid">
+          <a class="bot-card bot-piko" href="games/chess.html?level=1">
+            <div class="bot-avatar">🐣</div>
+            <div><strong>Piko</strong><p>Teman pertama untuk belajar.</p></div>
+            <span class="difficulty easy">Pemula</span>
+          </a>
+          <a class="bot-card bot-nara" href="games/chess.html?level=2">
+            <div class="bot-avatar">🦊</div>
+            <div><strong>Nara</strong><p>Suka menyerang terlalu cepat.</p></div>
+            <span class="difficulty medium">Santai</span>
+          </a>
+          <a class="bot-card bot-bima" href="games/chess.html?level=3">
+            <div class="bot-avatar">🦁</div>
+            <div><strong>Bima</strong><p>Tenang dan bermain seimbang.</p></div>
+            <span class="difficulty hard">Menantang</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="content-section learning-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">JALUR BELAJAR</p>
+            <h2>Dari langkah pertama sampai juara</h2>
+          </div>
+        </div>
+
+        <div class="lesson-track">
+          <button class="lesson-card current" type="button" data-coming-soon>
+            <span class="lesson-number">01</span>
+            <span class="lesson-icon">♙</span>
+            <span><strong>Desa Pion</strong><small>Kenali papan dan bidak</small></span>
+            <b>Mulai</b>
+          </button>
+          <button class="lesson-card locked" type="button" data-coming-soon>
+            <span class="lesson-number">02</span>
+            <span class="lesson-icon">♘</span>
+            <span><strong>Hutan Kuda</strong><small>Kuasai langkah istimewa</small></span>
+            <b>🔒</b>
+          </button>
+          <button class="lesson-card locked" type="button" data-coming-soon>
+            <span class="lesson-number">03</span>
+            <span class="lesson-icon">♔</span>
+            <span><strong>Istana Raja</strong><small>Skak dan skakmat</small></span>
+            <b>🔒</b>
+          </button>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <section class="game-list" id="gameList">
+  <nav class="mobile-nav" aria-label="Navigasi seluler">
+    <a class="active" href="index.html"><span>⌂</span>Beranda</a>
+    <a href="games/chess.html"><span>♟</span>Main</a>
+    <button type="button" data-coming-soon><span>◇</span>Belajar</button>
+    <button type="button" data-coming-soon><span>◎</span>Profil</button>
+  </nav>
 
-    <a href="games/chess.html" class="game-card" style="--i:1" data-title="chess catur">
-      <div class="game-icon purple">♟️</div>
-      <div class="game-info">
-        <h4>Chess</h4>
-        <p>Game catur klasik untuk melatih strategi.</p>
-      </div>
-      <span class="badge">Classic</span>
-      <span class="arrow">›</span>
-    </a>
+  <div class="toast" id="comingSoonToast" role="status" aria-live="polite">Fitur ini sedang kami siapkan.</div>
 
-    <a href="games/tetris.html" class="game-card" style="--i:2" data-title="tetris puzzle balok">
-      <div class="game-icon green">🧩</div>
-      <div class="game-info">
-        <h4>Tetris</h4>
-        <p>Susun balok dan raih skor tertinggi.</p>
-      </div>
-      <span class="badge">Puzzle</span>
-      <span class="arrow">›</span>
-    </a>
+  <script>
+    const toast = document.getElementById("comingSoonToast");
+    let toastTimer;
 
-    <a href="games/snake.html" class="game-card" style="--i:3" data-title="ular snake">
-      <div class="game-icon yellow">🐍</div>
-      <div class="game-info">
-        <h4>Snake</h4>
-        <p>Game ular sederhana yang bikin nostalgia.</p>
-      </div>
-      <span class="badge">Arcade</span>
-      <span class="arrow">›</span>
-    </a>
-
-    <a href="games/memory.html" class="game-card" style="--i:4" data-title="memory card kartu ingatan">
-      <div class="game-icon red">🃏</div>
-      <div class="game-info">
-        <h4>Memory Card</h4>
-        <p>Cocokkan kartu dan latih daya ingat.</p>
-      </div>
-      <span class="badge">Brain</span>
-      <span class="arrow">›</span>
-    </a>
-
-    <a href="games/tictactoe.html" class="game-card" style="--i:5" data-title="tic tac toe silang bulat">
-      <div class="game-icon blue">⭕</div>
-      <div class="game-info">
-        <h4>Tic Tac Toe</h4>
-        <p>Game X dan O yang ringan dan cepat.</p>
-      </div>
-      <span class="badge">Quick</span>
-      <span class="arrow">›</span>
-    </a>
-
-    <a href="games/flappy.html" class="game-card" style="--i:6" data-title="flappy bird terbang">
-      <div class="game-icon purple">🐦</div>
-      <div class="game-info">
-        <h4>Flappy</h4>
-        <p>Lewati rintangan dengan timing yang pas.</p>
-      </div>
-      <span class="badge">Fun</span>
-      <span class="arrow">›</span>
-    </a>
-
-    <a href="games/runner.html" class="game-card" style="--i:7" data-title="runner lari">
-      <div class="game-icon green">🏃</div>
-      <div class="game-info">
-        <h4>Mini Runner</h4>
-        <p>Lari, lompat, dan hindari rintangan.</p>
-      </div>
-      <span class="badge">Action</span>
-      <span class="arrow">›</span>
-    </a>
-
-    <a href="games/word.html" class="game-card" style="--i:8" data-title="word tebak kata">
-      <div class="game-icon yellow">🔤</div>
-      <div class="game-info">
-        <h4>Tebak Kata</h4>
-        <p>Game kata sederhana untuk santai.</p>
-      </div>
-      <span class="badge">Word</span>
-      <span class="arrow">›</span>
-    </a>
-
-  </section>
-
-</main>
-  <div id="footer"></div>
-  <script src="js/loader.js"></script>
-<script>
-const searchInput = document.getElementById("searchInput");
-const gameCards = document.querySelectorAll(".game-card");
-const gameCount = document.getElementById("gameCount");
-
-searchInput.addEventListener("input", () => {
-  const keyword = searchInput.value.toLowerCase().trim();
-  let visible = 0;
-
-  gameCards.forEach(card => {
-    const title = card.dataset.title.toLowerCase();
-    const match = title.includes(keyword);
-
-    card.style.display = match ? "flex" : "none";
-    if(match) visible++;
-  });
-
-  gameCount.textContent = visible + " game";
-});
-</script>
-
+    document.querySelectorAll("[data-coming-soon]").forEach(button => {
+      button.addEventListener("click", () => {
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+      });
+    });
+  </script>
 </body>
 </html>
