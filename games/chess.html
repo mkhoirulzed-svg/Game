@@ -1005,37 +1005,37 @@
     let coachEnabled = true;
     let audioCtx = null;
 
-    function $(id){
+    function byId(id){
       return document.getElementById(id);
     }
 
     function setStatusText(text, ready){
-      $("gameStatus").textContent = text;
-      $("statusBanner").classList.toggle("ready", Boolean(ready));
+      byId("gameStatus").textContent = text;
+      byId("statusBanner").classList.toggle("ready", Boolean(ready));
     }
 
     function setCoach(label, text){
-      $("coachLabel").textContent = label;
-      $("coachText").textContent = text;
+      byId("coachLabel").textContent = label;
+      byId("coachText").textContent = text;
     }
 
     function getSelectedBot(){
-      return bots[$("level").value] || bots[1];
+      return bots[byId("level").value] || bots[1];
     }
 
     function updateBotUI(){
       const bot = getSelectedBot();
-      $("botAvatar").textContent = bot.avatar;
-      $("botName").textContent = bot.name;
-      $("botStyle").textContent = bot.style;
-      $("startAvatar").textContent = bot.avatar;
-      $("startTitle").textContent = "Lawan " + bot.name;
-      $("startDescription").textContent = bot.description;
+      byId("botAvatar").textContent = bot.avatar;
+      byId("botName").textContent = bot.name;
+      byId("botStyle").textContent = bot.style;
+      byId("startAvatar").textContent = bot.avatar;
+      byId("startTitle").textContent = "Lawan " + bot.name;
+      byId("startDescription").textContent = bot.description;
     }
 
     function readLevelFromUrl(){
       const value = Number(new URLSearchParams(location.search).get("level"));
-      if(bots[value]) $("level").value = String(value);
+      if(bots[value]) byId("level").value = String(value);
       updateBotUI();
     }
 
@@ -1081,16 +1081,16 @@
 
     function toggleSound(){
       soundEnabled = !soundEnabled;
-      $("soundToggle").classList.toggle("on",soundEnabled);
-      $("soundToggle").setAttribute("aria-checked",String(soundEnabled));
-      $("soundHeaderBtn").textContent = soundEnabled ? "🔊" : "🔇";
+      byId("soundToggle").classList.toggle("on",soundEnabled);
+      byId("soundToggle").setAttribute("aria-checked",String(soundEnabled));
+      byId("soundHeaderBtn").textContent = soundEnabled ? "🔊" : "🔇";
       if(soundEnabled) playTone(620,.08,"sine",.12);
     }
 
     function toggleCoach(){
       coachEnabled = !coachEnabled;
-      $("coachToggle").classList.toggle("on",coachEnabled);
-      $("coachToggle").setAttribute("aria-checked",String(coachEnabled));
+      byId("coachToggle").classList.toggle("on",coachEnabled);
+      byId("coachToggle").setAttribute("aria-checked",String(coachEnabled));
       setCoach(coachEnabled ? "PELATIH AKTIF" : "PELATIH NONAKTIF",coachEnabled
         ? "Aku akan memperingatkanmu jika bidak berharga kemungkinan langsung dapat dimakan."
         : "Kamu bermain tanpa peringatan kesempatan kedua.");
@@ -1111,7 +1111,7 @@
 
     function applyTheme(){
       document.body.classList.remove("theme-classic","theme-green","theme-blue","theme-gold");
-      document.body.classList.add("theme-" + $("theme").value);
+      document.body.classList.add("theme-" + byId("theme").value);
       if(board) board.resize();
     }
 
@@ -1276,7 +1276,7 @@
       const danger = findImmediateDanger(move);
       if(danger){
         pendingCoachDecision = true;
-        $("coachActions").classList.add("show");
+        byId("coachActions").classList.add("show");
         setCoach("PERIKSA LAGI","Setelah langkah ini, " + danger.piece + " kamu kemungkinan dapat langsung dimakan oleh " + danger.attacker + ". Mau mencoba langkah lain?");
         setStatusText("Pelatih menemukan kemungkinan bidakmu tergantung.",false);
         return;
@@ -1301,7 +1301,7 @@
       if(!pendingCoachDecision) return;
       game.undo();
       pendingCoachDecision = false;
-      $("coachActions").classList.remove("show");
+      byId("coachActions").classList.remove("show");
       board.position(game.fen());
       clearLastMove();
       updateMoveList();
@@ -1313,7 +1313,7 @@
     function continueMove(){
       if(!pendingCoachDecision) return;
       pendingCoachDecision = false;
-      $("coachActions").classList.remove("show");
+      byId("coachActions").classList.remove("show");
       setCoach("TETAP LANJUT","Baik, kita lihat bagaimana lawan menjawab langkah itu.");
       setStatusText(getSelectedBot().name + " sedang berpikir…",false);
       setTimeout(makeAIMove,220);
@@ -1329,14 +1329,14 @@
     }
 
     function updateActivePlayer(){
-      $("whiteCard").classList.toggle("active",game.turn() === "w" && !gameOver);
-      $("blackCard").classList.toggle("active",game.turn() === "b" && !gameOver);
+      byId("whiteCard").classList.toggle("active",game.turn() === "w" && !gameOver);
+      byId("blackCard").classList.toggle("active",game.turn() === "b" && !gameOver);
     }
 
     function updateMoveList(){
       const history = game.history();
-      $("moveCount").textContent = history.length + " langkah";
-      $("emptyMoves").style.display = history.length ? "none" : "block";
+      byId("moveCount").textContent = history.length + " langkah";
+      byId("emptyMoves").style.display = history.length ? "none" : "block";
 
       let html = "";
       for(let index=0;index<history.length;index+=2){
@@ -1344,7 +1344,7 @@
         html += '<span>' + history[index] + '</span>';
         html += '<span>' + (history[index + 1] || "") + '</span>';
       }
-      $("moveList").innerHTML = html;
+      byId("moveList").innerHTML = html;
     }
 
     function saveResult(result){
@@ -1399,11 +1399,11 @@
 
     function renderClock(){
       if(playerTime === 0 && aiTime === 0){
-        $("whiteTime").textContent = "∞";
-        $("blackTime").textContent = "∞";
+        byId("whiteTime").textContent = "∞";
+        byId("blackTime").textContent = "∞";
       }else{
-        $("whiteTime").textContent = formatTime(Math.max(0,playerTime));
-        $("blackTime").textContent = formatTime(Math.max(0,aiTime));
+        byId("whiteTime").textContent = formatTime(Math.max(0,playerTime));
+        byId("blackTime").textContent = formatTime(Math.max(0,aiTime));
       }
     }
 
@@ -1458,10 +1458,10 @@
       clearInterval(timer);
       clearSelection();
       clearLastMove();
-      $("coachActions").classList.remove("show");
-      $("startOverlay").classList.add("hidden");
+      byId("coachActions").classList.remove("show");
+      byId("startOverlay").classList.add("hidden");
 
-      const selectedTime = Number($("timeMode").value);
+      const selectedTime = Number(byId("timeMode").value);
       playerTime = selectedTime;
       aiTime = selectedTime;
       board.position("start");
@@ -1483,8 +1483,8 @@
       if(match) onSquareClick(match[1]);
     });
 
-    $("level").addEventListener("change",updateBotUI);
-    $("theme").addEventListener("change",applyTheme);
+    byId("level").addEventListener("change",updateBotUI);
+    byId("theme").addEventListener("change",applyTheme);
 
     readLevelFromUrl();
 
@@ -1507,20 +1507,20 @@
       },120);
     });
 
-    $("newGameBtn").disabled = true;
+    byId("newGameBtn").disabled = true;
 
     initEngine()
       .then(function(){
-        $("newGameBtn").disabled = false;
-        $("startBtn").disabled = false;
-        $("startBtn").textContent = "Mulai bermain";
-        $("engineNote").textContent = "Stockfish siap • berjalan di perangkatmu";
+        byId("newGameBtn").disabled = false;
+        byId("startBtn").disabled = false;
+        byId("startBtn").textContent = "Mulai bermain";
+        byId("engineNote").textContent = "Stockfish siap • berjalan di perangkatmu";
         setStatusText("Mesin siap. Klik Mulai bermain.",true);
       })
       .catch(function(error){
         console.error(error);
-        $("startBtn").textContent = "Mesin gagal dimuat";
-        $("engineNote").textContent = "Gagal memuat Stockfish. Muat ulang halaman untuk mencoba lagi.";
+        byId("startBtn").textContent = "Mesin gagal dimuat";
+        byId("engineNote").textContent = "Gagal memuat Stockfish. Muat ulang halaman untuk mencoba lagi.";
       });
   </script>
 </body>
