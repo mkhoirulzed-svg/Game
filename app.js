@@ -76,5 +76,5 @@
     }
   };
 
-  document.addEventListener("DOMContentLoaded", hydrate);
+  document.addEventListener("DOMContentLoaded", hydrate);\n  const appScript = document.currentScript;\n  if ("serviceWorker" in navigator && appScript) {\n    window.addEventListener("load", () => navigator.serviceWorker.register(new URL("sw.js", appScript.src)).catch(() => {}));\n  }
 })();
