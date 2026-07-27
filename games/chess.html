@@ -813,7 +813,7 @@
       }
     }
   </style>
-</head>
+<link rel="manifest" href="../manifest.webmanifest"><link rel="icon" href="../icon.svg" type="image/svg+xml"></head>
 
 <body class="theme-classic">
   <main class="arena-shell">
@@ -1086,6 +1086,7 @@
       byId("soundToggle").classList.toggle("on",soundEnabled);
       byId("soundToggle").setAttribute("aria-checked",String(soundEnabled));
       byId("soundHeaderBtn").textContent = soundEnabled ? "🔊" : "🔇";
+      if(window.LangkahJuara) LangkahJuara.saveSettings({sound:soundEnabled});
       if(soundEnabled) playTone(620,.08,"sine",.12);
     }
 
@@ -1096,6 +1097,7 @@
       setCoach(coachEnabled ? "PELATIH AKTIF" : "PELATIH NONAKTIF",coachEnabled
         ? "Aku akan memperingatkanmu jika bidak berharga kemungkinan langsung dapat dimakan."
         : "Kamu bermain tanpa peringatan kesempatan kedua.");
+      if(window.LangkahJuara) LangkahJuara.saveSettings({coach:coachEnabled});
     }
 
     function toggleSideCard(id){
@@ -1114,6 +1116,7 @@
     function applyTheme(){
       document.body.classList.remove("theme-classic","theme-green","theme-blue","theme-gold");
       document.body.classList.add("theme-" + byId("theme").value);
+      if(window.LangkahJuara) LangkahJuara.saveSettings({theme:byId("theme").value});
       if(board) board.resize();
     }
 
@@ -1514,6 +1517,7 @@
       coachEnabled = savedSettings.coach !== false;
       byId("soundToggle").classList.toggle("on",soundEnabled);
       byId("soundToggle").setAttribute("aria-checked",String(soundEnabled));
+      byId("soundHeaderBtn").textContent = soundEnabled ? "🔊" : "🔇";
       byId("coachToggle").classList.toggle("on",coachEnabled);
       byId("coachToggle").setAttribute("aria-checked",String(coachEnabled));
       if(["classic","green","blue","gold"].includes(savedSettings.theme)){
