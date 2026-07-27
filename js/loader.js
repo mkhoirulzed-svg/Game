@@ -35,8 +35,8 @@ function getComponentPath(fileName) {
 function setupHeader() {
   const body = document.body;
 
-  const title = body.dataset.title || "Boring Game";
-  const subtitle = body.dataset.subtitle || "Mini Games";
+  const title = body.dataset.title || "Langkah Juara";
+  const subtitle = body.dataset.subtitle || "Belajar dari setiap langkah";
   const showSearch = body.dataset.search !== "false";
 
   const headerTitle = document.querySelector(".brand h1");
@@ -62,9 +62,9 @@ function setupFooterActive() {
     if (
       (nav === "home" && path.endsWith("index.html")) ||
       (nav === "home" && path === "/") ||
-      (nav === "favorite" && path.includes("favorite")) ||
-      (nav === "recent" && path.includes("recent")) ||
-      (nav === "settings" && path.includes("settings"))
+      (nav === "play" && path.includes("/games/")) ||
+      (nav === "learn" && (path.includes("belajar") || path.includes("pelajaran"))) ||
+      (nav === "profile" && (path.includes("profil") || path.includes("riwayat")))
     ) {
       item.classList.add("active");
     }
