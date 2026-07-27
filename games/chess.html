@@ -359,7 +359,7 @@
 
     .mobile-quick-actions{
       display:none;
-      grid-template-columns:repeat(3,1fr);
+      grid-template-columns:repeat(4,1fr);
       gap:8px;
       margin-top:12px;
     }
@@ -972,9 +972,11 @@
   <nav class="mobile-bottom-nav" aria-label="Navigasi seluler">
     <a href="../index.html"><span>⌂</span>Beranda</a>
     <a class="active" href="chess.html"><span>♟</span>Main</a>
-    <button type="button" onclick="toggleSideCard('settingsCard')"><span>⚙</span>Pengaturan</button>
+    <a href="../belajar.html"><span>◇</span>Belajar</a>
+    <a href="../profil.html"><span>◎</span>Profil</a>
   </nav>
 
+  <script src="../app.js"></script>
   <script>
     const ENGINE_PATH = "data/chess/stockfish.js";
     const PIECE_PATH = "data/chess/img/chesspieces/wikipedia/{piece}.png";
@@ -1358,10 +1360,28 @@
         stats = {};
       }
 
+      const playedAt = new Date().toISOString();
       stats.games = Number(stats.games || 0) + 1;
       stats.wins = Number(stats.wins || 0) + (result === "win" ? 1 : 0);
-      stats.lastPlayed = new Date().toISOString();
+      stats.lastPlayed = playedAt;
       localStorage.setItem("langkahJuaraStats",JSON.stringify(stats));
+
+      let savedHistory;
+      try{
+        savedHistory = JSON.parse(localStorage.getItem("langkahJuaraHistory")) || [];
+      }catch(error){
+        savedHistory = [];
+      }
+      const selectedTime = Number(byId("timeMode").value);
+      savedHistory.push({
+        result: result,
+        bot: getSelectedBot().name,
+        level: byId("level").value,
+        date: playedAt,
+        moves: game.history().length,
+        time: selectedTime ? (selectedTime / 60) + " menit" : "Tanpa waktu"
+      });
+      localStorage.setItem("langkahJuaraHistory",JSON.stringify(savedHistory.slice(-50)));
     }
 
     function updateGameUI(){
@@ -1487,6 +1507,19 @@
     byId("theme").addEventListener("change",applyTheme);
 
     readLevelFromUrl();
+
+    if(window.LangkahJuara){
+      const savedSettings = LangkahJuara.settings();
+      soundEnabled = savedSettings.sound !== false;
+      coachEnabled = savedSettings.coach !== false;
+      byId("soundToggle").classList.toggle("on",soundEnabled);
+      byId("soundToggle").setAttribute("aria-checked",String(soundEnabled));
+      byId("coachToggle").classList.toggle("on",coachEnabled);
+      byId("coachToggle").setAttribute("aria-checked",String(coachEnabled));
+      if(["classic","green","blue","gold"].includes(savedSettings.theme)){
+        byId("theme").value = savedSettings.theme;
+      }
+    }
 
     board = Chessboard("board",{
       draggable:false,
