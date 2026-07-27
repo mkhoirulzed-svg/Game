@@ -1,830 +1,1527 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://code.jquery.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; worker-src 'self' blob:; connect-src 'self';">
-<title>Chess Game</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0f1c">
+  <meta name="description" content="Arena catur Langkah Juara dengan lawan AI dan pelatih untuk pemula.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://code.jquery.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data:; worker-src 'self' blob:; connect-src 'self';">
+  <title>Arena Catur — Langkah Juara</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
-<link rel="stylesheet" href="../css/header.css">
- <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="../css/footer.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
 
-<style>
-:root{
-  --bg:#0b1020;
-  --card:#151b2e;
-  --soft:#1f2942;
-  --text:#f8fafc;
-  --muted:#94a3b8;
-  --primary:#7c5cff;
-  --gold:#facc15;
-  --danger:#fb7185;
-  --green:#22c55e;
-}
+  <style>
+    :root{
+      --bg:#0a0f1c;
+      --surface:#111827;
+      --surface-2:#172033;
+      --surface-3:#202b42;
+      --text:#f8fafc;
+      --muted:#94a3b8;
+      --line:rgba(255,255,255,.09);
+      --primary:#8b5cf6;
+      --primary-dark:#6d4aff;
+      --green:#41e5a1;
+      --gold:#f7c95c;
+      --danger:#fb7185;
+      --shadow:0 24px 70px rgba(0,0,0,.34);
+    }
 
-*{box-sizing:border-box}
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+    }
 
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:radial-gradient(circle at top,#243056 0,#0b1020 48%);
-  color:var(--text);
-  min-height:100vh;
-}
+    html{
+      scroll-behavior:smooth;
+    }
 
-.chess-page{
-  max-width:520px;
-  margin:auto;
-  padding:18px 16px 110px;
-}
+    body{
+      margin:0;
+      min-height:100vh;
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 82% 0,rgba(139,92,246,.16),transparent 28rem),
+        radial-gradient(circle at 12% 88%,rgba(65,229,161,.07),transparent 25rem),
+        var(--bg);
+    }
 
-.header{
-  text-align:center;
-  margin-bottom:18px;
-}
+    button,
+    select,
+    a{
+      font:inherit;
+    }
 
-.header h1{
-  margin:0;
-  font-size:1.7rem;
-}
+    button:focus-visible,
+    select:focus-visible,
+    a:focus-visible{
+      outline:3px solid rgba(65,229,161,.72);
+      outline-offset:3px;
+    }
 
-.header p{
-  margin:6px 0 0;
-  color:var(--muted);
-  font-size:.9rem;
-}
+    .arena-shell{
+      width:min(1220px,100%);
+      min-height:100vh;
+      margin:0 auto;
+      padding:24px clamp(18px,3vw,42px) 42px;
+    }
 
-.panel{
-  background:rgba(21,27,46,.88);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:22px;
-  padding:16px;
-  box-shadow:0 20px 45px rgba(0,0,0,.35);
-  backdrop-filter:blur(12px);
-}
+    .arena-header{
+      min-height:58px;
+      margin-bottom:22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+    }
 
-.controls{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-bottom:14px;
-}
+    .back-link{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      color:var(--muted);
+      text-decoration:none;
+      font-size:.82rem;
+      font-weight:800;
+    }
 
-.control{
-  background:var(--soft);
-  border-radius:16px;
-  padding:10px;
-}
+    .back-link span{
+      width:36px;
+      height:36px;
+      display:grid;
+      place-items:center;
+      border:1px solid var(--line);
+      border-radius:12px;
+      color:#fff;
+      background:var(--surface-2);
+      font-size:1.15rem;
+    }
 
-.control label{
-  display:block;
-  color:var(--muted);
-  font-size:.75rem;
-  margin-bottom:6px;
-}
+    .arena-brand{
+      display:flex;
+      align-items:center;
+      gap:11px;
+    }
 
-select,button{
-  width:100%;
-  border:none;
-  border-radius:12px;
-  padding:10px 12px;
-  font-weight:700;
-}
+    .brand-mark{
+      width:42px;
+      height:42px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:linear-gradient(145deg,var(--primary),#4f46e5);
+      box-shadow:0 12px 28px rgba(109,74,255,.3);
+      font:1.55rem Georgia,serif;
+    }
 
-select{
-  background:#0f172a;
-  color:var(--text);
-}
+    .arena-brand strong,
+    .arena-brand small{
+      display:block;
+    }
 
-select:disabled, button:disabled{
-  opacity:.5;
-  cursor:not-allowed;
-}
+    .arena-brand strong{
+      font-size:.93rem;
+    }
 
-button{
-  background:linear-gradient(135deg,var(--primary),#4f46e5);
-  color:white;
-  cursor:pointer;
-}
+    .arena-brand small{
+      margin-top:3px;
+      color:var(--muted);
+      font-size:.66rem;
+    }
 
-button:active{transform:scale(.98)}
+    .header-actions{
+      display:flex;
+      gap:9px;
+    }
 
-.board-wrap{
-  background:#0f172a;
-  border-radius:18px;
-  padding:10px;
-  overflow:hidden;
-  position:relative;
-}
+    .icon-button{
+      width:40px;
+      height:40px;
+      padding:0;
+      display:grid;
+      place-items:center;
+      border:1px solid var(--line);
+      border-radius:13px;
+      color:#dbe3ef;
+      background:var(--surface-2);
+      cursor:pointer;
+    }
 
-.start-overlay{
-  position:absolute;
-  inset:0;
-  background:rgba(11,16,32,.92);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:18px;
-  z-index:20;
-  backdrop-filter:blur(2px);
-  transition:opacity .2s ease;
-}
+    .arena-layout{
+      display:grid;
+      grid-template-columns:minmax(0,680px) minmax(300px,390px);
+      justify-content:center;
+      align-items:start;
+      gap:24px;
+    }
 
-.start-overlay.hidden{
-  display:none;
-}
+    .board-column{
+      min-width:0;
+    }
 
-.start-overlay button{
-  width:auto;
-  padding:14px 34px;
-  font-size:1rem;
-  border-radius:14px;
-}
+    .player-bar{
+      min-height:72px;
+      padding:12px 15px;
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:12px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(17,24,39,.78);
+      box-shadow:0 12px 30px rgba(0,0,0,.16);
+    }
 
-.legal-move-highlight{
-  box-shadow:inset 0 0 0 9999px rgba(124,92,255,.45)!important;
-}
+    .player-bar.active{
+      border-color:rgba(139,92,246,.48);
+      box-shadow:0 0 0 2px rgba(139,92,246,.12),0 12px 30px rgba(0,0,0,.18);
+    }
 
-#board{
-  width:100%;
-  max-width:460px;
-  margin:auto;
-}
+    .player-avatar{
+      width:46px;
+      height:46px;
+      display:grid;
+      place-items:center;
+      border-radius:15px;
+      background:var(--surface-3);
+      font-size:1.5rem;
+    }
 
-.status-box{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin:14px 0;
-}
+    .player-info strong,
+    .player-info small{
+      display:block;
+    }
 
-.status-card{
-  background:var(--soft);
-  border-radius:16px;
-  padding:12px;
-  text-align:center;
-}
+    .player-info strong{
+      font-size:.9rem;
+    }
 
-.status-card span{
-  display:block;
-  font-size:.72rem;
-  color:var(--muted);
-}
+    .player-info small{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:.69rem;
+    }
 
-.status-card strong{
-  font-size:1.2rem;
-}
+    .clock{
+      min-width:88px;
+      padding:9px 12px;
+      border-radius:12px;
+      background:#090e19;
+      font-variant-numeric:tabular-nums;
+      font-size:1.12rem;
+      font-weight:900;
+      text-align:center;
+      letter-spacing:.03em;
+    }
 
-.status-card.active{
-  box-shadow:0 0 0 2px var(--primary) inset;
-}
+    .player-bar.active .clock{
+      color:#fff;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    }
 
-#gameStatus{
-  background:rgba(124,92,255,.14);
-  border:1px solid rgba(124,92,255,.25);
-  border-radius:16px;
-  padding:12px;
-  font-size:.9rem;
-  color:#ddd6fe;
-  text-align:center;
-  min-height:1.2em;
-}
+    .board-frame{
+      position:relative;
+      margin:12px 0;
+      padding:12px;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:24px;
+      background:#0e1524;
+      box-shadow:var(--shadow);
+    }
 
-.move-list{
-  margin-top:14px;
-  max-height:130px;
-  overflow:auto;
-  background:#0f172a;
-  border-radius:14px;
-  padding:10px;
-  color:var(--muted);
-  font-size:.82rem;
-  line-height:1.7;
-}
+    #board{
+      width:100%;
+      max-width:656px;
+      margin:auto;
+      overflow:hidden;
+      border-radius:13px;
+    }
 
-.engine-note{
-  text-align:center;
-  font-size:.72rem;
-  color:var(--muted);
-  margin-top:10px;
-}
+    #board .square-55d63{
+      cursor:pointer;
+    }
 
-.theme-classic .white-1e1d7{background:#f0d9b5!important}
-.theme-classic .black-3c85d{background:#b58863!important}
+    .start-overlay{
+      position:absolute;
+      inset:12px;
+      z-index:20;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:13px;
+      background:rgba(8,13,24,.91);
+      backdrop-filter:blur(7px);
+    }
 
-.theme-green .white-1e1d7{background:#d9f99d!important}
-.theme-green .black-3c85d{background:#15803d!important}
+    .start-overlay.hidden{
+      display:none;
+    }
 
-.theme-blue .white-1e1d7{background:#dbeafe!important}
-.theme-blue .black-3c85d{background:#2563eb!important}
+    .start-card{
+      width:min(330px,calc(100% - 30px));
+      padding:24px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:rgba(23,32,51,.94);
+      box-shadow:var(--shadow);
+      text-align:center;
+    }
 
-.theme-gold .white-1e1d7{background:#fde68a!important}
-.theme-gold .black-3c85d{background:#92400e!important}
+    .start-avatar{
+      width:72px;
+      height:72px;
+      margin:0 auto 12px;
+      display:grid;
+      place-items:center;
+      border-radius:22px;
+      background:rgba(139,92,246,.15);
+      font-size:2.5rem;
+    }
 
-@media(max-width:420px){
-  .controls{grid-template-columns:1fr}
-}
-  .selected-square{
-  box-shadow:inset 0 0 0 9999px rgba(250,204,21,.38)!important;
-}
+    .start-card h1{
+      margin:0;
+      font-size:1.35rem;
+    }
 
-.lifted-piece img{
-  transform:scale(1.22);
-  filter:drop-shadow(0 14px 12px rgba(0,0,0,.45));
-  transition:.15s ease;
-  z-index:9;
-  position:relative;
-}
+    .start-card p{
+      margin:8px 0 17px;
+      color:var(--muted);
+      font-size:.8rem;
+      line-height:1.55;
+    }
 
-#board .square-55d63{
-  cursor:pointer;
-}
+    .primary-button,
+    .secondary-button,
+    .danger-button{
+      min-height:43px;
+      padding:0 15px;
+      border:1px solid transparent;
+      border-radius:13px;
+      color:#fff;
+      font-weight:850;
+      cursor:pointer;
+    }
+
+    .primary-button{
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      box-shadow:0 10px 24px rgba(109,74,255,.28);
+    }
+
+    .secondary-button{
+      border-color:var(--line);
+      background:var(--surface-3);
+    }
+
+    .danger-button{
+      color:#fecdd3;
+      border-color:rgba(251,113,133,.22);
+      background:rgba(251,113,133,.09);
+    }
+
+    button:disabled,
+    select:disabled{
+      opacity:.48;
+      cursor:not-allowed;
+    }
+
+    .legal-move-highlight{
+      box-shadow:inset 0 0 0 9999px rgba(65,229,161,.37)!important;
+    }
 
     .selected-square{
-  box-shadow:inset 0 0 0 9999px rgba(250,204,21,.38)!important;
-}
+      box-shadow:inset 0 0 0 9999px rgba(247,201,92,.4)!important;
+    }
 
-.lifted-piece img{
-  transform:scale(1.22);
-  filter:drop-shadow(0 14px 12px rgba(0,0,0,.45));
-  transition:.15s ease;
-  z-index:9;
-  position:relative;
-}
+    .last-move-square{
+      box-shadow:inset 0 0 0 9999px rgba(139,92,246,.25)!important;
+    }
 
-#board .square-55d63{
-  cursor:pointer;
-}
+    .lifted-piece img{
+      position:relative;
+      z-index:9;
+      transform:scale(1.16);
+      filter:drop-shadow(0 12px 10px rgba(0,0,0,.45));
+    }
 
-  .compact-actions{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin:14px 0;
-}
+    .theme-classic .white-1e1d7{background:#f0d9b5!important}
+    .theme-classic .black-3c85d{background:#b58863!important}
+    .theme-green .white-1e1d7{background:#d9f99d!important}
+    .theme-green .black-3c85d{background:#15803d!important}
+    .theme-blue .white-1e1d7{background:#dbeafe!important}
+    .theme-blue .black-3c85d{background:#2563eb!important}
+    .theme-gold .white-1e1d7{background:#fde68a!important}
+    .theme-gold .black-3c85d{background:#92400e!important}
 
-#settingsPanel{
-    overflow:hidden;
-    transition:.35s ease;
-}
+    .mobile-quick-actions{
+      display:none;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      margin-top:12px;
+    }
 
-#settingsPanel.hide{
-    max-height:0;
-    opacity:0;
-    margin:0;
-    padding:0;
-    overflow:hidden;
-}
+    .mobile-quick-actions button{
+      min-height:42px;
+      padding:6px 8px;
+      border:1px solid var(--line);
+      border-radius:13px;
+      color:var(--muted);
+      background:var(--surface-2);
+      font-size:.68rem;
+      font-weight:800;
+    }
 
-#settingsPanel.show{
-    max-height:500px;
-    opacity:1;
-}
-</style>
+    .side-column{
+      display:grid;
+      gap:14px;
+      min-width:0;
+    }
+
+    .side-card{
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:21px;
+      background:rgba(17,24,39,.82);
+      box-shadow:0 14px 36px rgba(0,0,0,.17);
+    }
+
+    .card-heading{
+      padding:17px 18px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .card-heading h2{
+      margin:0;
+      font-size:.94rem;
+    }
+
+    .card-heading small{
+      color:var(--muted);
+      font-size:.64rem;
+    }
+
+    .coach-content{
+      padding:17px 18px;
+    }
+
+    .coach-message{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:12px;
+    }
+
+    .coach-avatar{
+      width:43px;
+      height:43px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:rgba(65,229,161,.1);
+      font-size:1.35rem;
+    }
+
+    .coach-copy strong{
+      display:block;
+      color:var(--green);
+      font-size:.76rem;
+    }
+
+    .coach-copy p{
+      margin:5px 0 0;
+      color:#c4ccda;
+      font-size:.78rem;
+      line-height:1.55;
+    }
+
+    .coach-actions{
+      display:none;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+      margin-top:15px;
+    }
+
+    .coach-actions.show{
+      display:grid;
+    }
+
+    .coach-actions button{
+      min-height:40px;
+      padding:0 10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      color:#fff;
+      background:var(--surface-3);
+      font-size:.72rem;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .coach-actions .try-again{
+      border-color:rgba(65,229,161,.25);
+      color:#b7f7d8;
+      background:rgba(65,229,161,.09);
+    }
+
+    .status-banner{
+      padding:12px 16px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:#ddd6fe;
+      border:1px solid rgba(139,92,246,.22);
+      border-radius:15px;
+      background:rgba(139,92,246,.1);
+      font-size:.78rem;
+      line-height:1.45;
+    }
+
+    .status-dot{
+      width:8px;
+      height:8px;
+      flex:0 0 auto;
+      border-radius:50%;
+      background:var(--gold);
+      box-shadow:0 0 0 5px rgba(247,201,92,.09);
+    }
+
+    .status-banner.ready .status-dot{
+      background:var(--green);
+      box-shadow:0 0 0 5px rgba(65,229,161,.09);
+    }
+
+    .settings-body{
+      padding:16px 18px 18px;
+      display:grid;
+      gap:12px;
+    }
+
+    .field{
+      display:grid;
+      gap:6px;
+    }
+
+    .field label{
+      color:var(--muted);
+      font-size:.67rem;
+      font-weight:800;
+    }
+
+    select{
+      width:100%;
+      min-height:42px;
+      padding:0 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      color:#fff;
+      background:#0c1321;
+    }
+
+    .toggle-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:11px 12px;
+      border-radius:13px;
+      background:var(--surface-2);
+    }
+
+    .toggle-row span{
+      font-size:.75rem;
+      font-weight:800;
+    }
+
+    .switch{
+      position:relative;
+      width:42px;
+      height:24px;
+      padding:0;
+      border:0;
+      border-radius:99px;
+      background:#38445a;
+      cursor:pointer;
+    }
+
+    .switch::after{
+      content:"";
+      position:absolute;
+      top:3px;
+      left:3px;
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:#fff;
+      transition:.2s ease;
+    }
+
+    .switch.on{
+      background:var(--primary);
+    }
+
+    .switch.on::after{
+      transform:translateX(18px);
+    }
+
+    .settings-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+    }
+
+    .moves-body{
+      max-height:210px;
+      overflow:auto;
+      padding:14px 18px 18px;
+    }
+
+    .move-list{
+      display:grid;
+      grid-template-columns:auto 1fr 1fr;
+      gap:7px 10px;
+      color:#d5dbea;
+      font-size:.74rem;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .move-list .move-number{
+      color:var(--muted);
+    }
+
+    .empty-moves{
+      color:var(--muted);
+      font-size:.76rem;
+      line-height:1.5;
+    }
+
+    .engine-note{
+      padding:0 18px 15px;
+      color:var(--muted);
+      font-size:.62rem;
+    }
+
+    .mobile-bottom-nav{
+      display:none;
+    }
+
+    @media (max-width:960px){
+      .arena-shell{
+        width:min(760px,100%);
+      }
+
+      .arena-layout{
+        grid-template-columns:1fr;
+      }
+
+      .side-column{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .coach-card,
+      .status-banner{
+        grid-column:1 / -1;
+      }
+
+      .moves-card{
+        min-height:100%;
+      }
+    }
+
+    @media (max-width:680px){
+      body{
+        padding-bottom:78px;
+      }
+
+      .arena-shell{
+        padding:12px 10px 24px;
+      }
+
+      .arena-header{
+        min-height:48px;
+        margin-bottom:10px;
+      }
+
+      .back-link{
+        font-size:0;
+      }
+
+      .back-link span{
+        width:38px;
+        height:38px;
+      }
+
+      .arena-brand small{
+        display:none;
+      }
+
+      .header-actions{
+        display:none;
+      }
+
+      .player-bar{
+        min-height:61px;
+        padding:8px 10px;
+        border-radius:15px;
+      }
+
+      .player-avatar{
+        width:40px;
+        height:40px;
+        border-radius:12px;
+        font-size:1.3rem;
+      }
+
+      .clock{
+        min-width:74px;
+        padding:8px 9px;
+        font-size:.95rem;
+      }
+
+      .board-frame{
+        margin:8px 0;
+        padding:5px;
+        border-radius:13px;
+      }
+
+      #board,
+      .start-overlay{
+        border-radius:9px;
+      }
+
+      .start-overlay{
+        inset:5px;
+      }
+
+      .mobile-quick-actions{
+        display:grid;
+      }
+
+      .side-column{
+        grid-template-columns:1fr;
+        gap:10px;
+        margin-top:10px;
+      }
+
+      .side-card{
+        border-radius:17px;
+      }
+
+      .settings-card,
+      .moves-card{
+        display:none;
+      }
+
+      .settings-card.mobile-open,
+      .moves-card.mobile-open{
+        display:block;
+      }
+
+      .coach-card,
+      .status-banner{
+        grid-column:auto;
+      }
+
+      .mobile-bottom-nav{
+        position:fixed;
+        z-index:60;
+        left:10px;
+        right:10px;
+        bottom:max(9px,env(safe-area-inset-bottom));
+        min-height:60px;
+        padding:6px;
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        border:1px solid var(--line);
+        border-radius:19px;
+        background:rgba(17,24,39,.95);
+        box-shadow:0 18px 45px rgba(0,0,0,.45);
+        backdrop-filter:blur(18px);
+      }
+
+      .mobile-bottom-nav a,
+      .mobile-bottom-nav button{
+        padding:5px 2px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        gap:3px;
+        border:0;
+        border-radius:13px;
+        color:var(--muted);
+        background:transparent;
+        text-decoration:none;
+        font-size:.59rem;
+        font-weight:800;
+      }
+
+      .mobile-bottom-nav span{
+        font-size:1.15rem;
+      }
+
+      .mobile-bottom-nav .active{
+        color:#fff;
+        background:rgba(139,92,246,.14);
+      }
+    }
+
+    @media (max-width:380px){
+      .arena-brand strong{
+        font-size:.82rem;
+      }
+
+      .brand-mark{
+        width:36px;
+        height:36px;
+      }
+
+      .player-info small{
+        display:none;
+      }
+
+      .player-bar{
+        grid-template-columns:auto 1fr auto;
+      }
+
+      .clock{
+        min-width:67px;
+        font-size:.86rem;
+      }
+
+      .mobile-quick-actions button{
+        font-size:.61rem;
+      }
+
+      .coach-content{
+        padding:14px;
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *,
+      *::before,
+      *::after{
+        transition:none!important;
+        animation:none!important;
+      }
+    }
+  </style>
 </head>
 
-<body>
-  <div id="header"></div>
-<main class="chess-page">
-  <div class="header">
-    <h1>Chess Legend</h1>
-  </div>
+<body class="theme-classic">
+  <main class="arena-shell">
+    <header class="arena-header">
+      <a class="back-link" href="../index.html"><span>←</span>Kembali ke beranda</a>
 
-  <section class="panel">
-    <div class="board-wrap">
-      <div id="board"></div>
-      <div class="start-overlay" id="startOverlay">
-        <button id="startBtn" onclick="newGame()" disabled>Memuat engine...</button>
+      <div class="arena-brand">
+        <span class="brand-mark">♞</span>
+        <span>
+          <strong>Langkah Juara</strong>
+          <small>Arena latihan</small>
+        </span>
       </div>
-      <div class="compact-actions">
-    <button onclick="toggleSettings()">Pengaturan</button>
-    <button onclick="newGame()">Game Baru</button>
-</div>
+
+      <div class="header-actions">
+        <button class="icon-button" type="button" onclick="toggleSound()" id="soundHeaderBtn" aria-label="Aktifkan atau matikan suara">🔊</button>
+        <button class="icon-button" type="button" onclick="toggleSideCard('settingsCard')" aria-label="Buka pengaturan">⚙</button>
+      </div>
+    </header>
+
+    <div class="arena-layout">
+      <section class="board-column" aria-label="Papan catur">
+        <div class="player-bar" id="blackCard">
+          <div class="player-avatar" id="botAvatar">🐣</div>
+          <div class="player-info">
+            <strong id="botName">Piko</strong>
+            <small id="botStyle">Teman pertama untuk belajar</small>
+          </div>
+          <div class="clock" id="blackTime">03:00</div>
+        </div>
+
+        <div class="board-frame">
+          <div id="board"></div>
+
+          <div class="start-overlay" id="startOverlay">
+            <div class="start-card">
+              <div class="start-avatar" id="startAvatar">🐣</div>
+              <h1 id="startTitle">Lawan Piko</h1>
+              <p id="startDescription">Piko bermain santai dan cocok untuk langkah pertamamu.</p>
+              <button class="primary-button" id="startBtn" type="button" onclick="newGame()" disabled>Memuat mesin catur…</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="player-bar" id="whiteCard">
+          <div class="player-avatar">🙂</div>
+          <div class="player-info">
+            <strong>Kamu</strong>
+            <small>Bidak putih • jalan lebih dulu</small>
+          </div>
+          <div class="clock" id="whiteTime">03:00</div>
+        </div>
+
+        <div class="mobile-quick-actions">
+          <button type="button" onclick="newGame()">↻ Game baru</button>
+          <button type="button" onclick="toggleSideCard('settingsCard')">⚙ Pengaturan</button>
+          <button type="button" onclick="toggleSideCard('movesCard')">☷ Langkah</button>
+        </div>
+      </section>
+
+      <aside class="side-column">
+        <section class="side-card coach-card">
+          <div class="card-heading">
+            <h2>Pelatih Langkah</h2>
+            <small>Mode belajar</small>
+          </div>
+          <div class="coach-content">
+            <div class="coach-message">
+              <div class="coach-avatar">🧠</div>
+              <div class="coach-copy">
+                <strong id="coachLabel">TIPS</strong>
+                <p id="coachText">Pilih bidak untuk melihat kotak yang dapat dituju. Pelatih akan memperingatkanmu jika ada bidak berharga yang mungkin langsung dimakan.</p>
+              </div>
+            </div>
+            <div class="coach-actions" id="coachActions">
+              <button class="try-again" type="button" onclick="retryMove()">Coba langkah lain</button>
+              <button type="button" onclick="continueMove()">Tetap lanjut</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="status-banner" id="statusBanner">
+          <span class="status-dot"></span>
+          <span id="gameStatus">Sedang memuat mesin catur…</span>
+        </div>
+
+        <section class="side-card settings-card" id="settingsCard">
+          <div class="card-heading">
+            <h2>Pengaturan permainan</h2>
+            <small>Sebelum mulai</small>
+          </div>
+          <div class="settings-body">
+            <div class="field">
+              <label for="level">Teman berlatih</label>
+              <select id="level">
+                <option value="1">🐣 Piko — Pemula</option>
+                <option value="2">🦊 Nara — Santai</option>
+                <option value="3">🦁 Bima — Menantang</option>
+                <option value="4">🐺 Raka — Kuat</option>
+                <option value="5">🧙 Sang Guru — Legenda</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="timeMode">Waktu permainan</label>
+              <select id="timeMode">
+                <option value="0">Tanpa waktu</option>
+                <option value="60">1 menit</option>
+                <option value="180" selected>3 menit</option>
+                <option value="600">10 menit</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="theme">Tema papan</label>
+              <select id="theme">
+                <option value="classic">Kayu klasik</option>
+                <option value="green">Hijau</option>
+                <option value="blue">Biru</option>
+                <option value="gold">Emas</option>
+              </select>
+            </div>
+
+            <div class="toggle-row">
+              <span>Pelatih kesempatan kedua</span>
+              <button class="switch on" id="coachToggle" type="button" onclick="toggleCoach()" role="switch" aria-checked="true" aria-label="Pelatih kesempatan kedua"></button>
+            </div>
+
+            <div class="toggle-row">
+              <span>Suara permainan</span>
+              <button class="switch on" id="soundToggle" type="button" onclick="toggleSound()" role="switch" aria-checked="true" aria-label="Suara permainan"></button>
+            </div>
+
+            <div class="settings-actions">
+              <button class="secondary-button" type="button" onclick="applyTheme()">Terapkan tema</button>
+              <button class="primary-button" id="newGameBtn" type="button" onclick="newGame()" disabled>Game baru</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="side-card moves-card" id="movesCard">
+          <div class="card-heading">
+            <h2>Riwayat langkah</h2>
+            <small id="moveCount">0 langkah</small>
+          </div>
+          <div class="moves-body">
+            <div class="empty-moves" id="emptyMoves">Belum ada langkah. Kamu bermain menggunakan bidak putih.</div>
+            <div class="move-list" id="moveList"></div>
+          </div>
+          <div class="engine-note" id="engineNote">Menyiapkan Stockfish…</div>
+        </section>
+      </aside>
     </div>
+  </main>
 
-    <div class="status-box">
-      <div class="status-card" id="whiteCard">
-        <span>Kamu</span>
-        <strong id="whiteTime">03:00</strong>
-      </div>
-      <div class="status-card" id="blackCard">
-        <span>AI</span>
-        <strong id="blackTime">03:00</strong>
-      </div>
-    </div>
-     <div class="controls" id="settingsPanel">
-      <div class="control">
-        <label>Level AI</label>
-        <select id="level">
-          <option value="1">Level 1 - Pemula</option>
-          <option value="2">Level 2 - Santai</option>
-          <option value="3">Level 3 - Menengah</option>
-          <option value="4">Level 4 - Master</option>
-          <option value="5">Level 5 - Legend</option>
-        </select>
-      </div>
+  <nav class="mobile-bottom-nav" aria-label="Navigasi seluler">
+    <a href="../index.html"><span>⌂</span>Beranda</a>
+    <a class="active" href="chess.html"><span>♟</span>Main</a>
+    <button type="button" onclick="toggleSideCard('settingsCard')"><span>⚙</span>Pengaturan</button>
+  </nav>
 
-      <div class="control">
-        <label>Waktu</label>
-       <select id="timeMode">
-  <option value="0">Tanpa Waktu</option>
-  <option value="60">1 Menit</option>
-  <option value="180" selected>3 Menit</option>
-  <option value="600">10 Menit</option>
-</select>
-      </div>
+  <script>
+    const ENGINE_PATH = "data/chess/stockfish.js";
+    const PIECE_PATH = "data/chess/img/chesspieces/wikipedia/{piece}.png";
+    const PIECE_VALUES = { p:1, n:3, b:3, r:5, q:9, k:100 };
 
-      <div class="control">
-        <label>Tema Papan</label>
-        <select id="theme">
-          <option value="classic">Classic</option>
-          <option value="green">Hijau</option>
-          <option value="blue">Biru</option>
-          <option value="gold">Gold</option>
-        </select>
-      </div>
-
-      <div class="control">
-        <label>Game</label>
-        <button id="newGameBtn" onclick="newGame()">Game Baru</button>
-      </div>
-
-      <div class="control">
-        <label>Suara</label>
-        <button id="soundToggleBtn" onclick="toggleSound()">🔊 Suara On</button>
-      </div>
-    </div>
-    <div id="gameStatus">Memuat engine catur...</div>
-    <div class="move-list" id="moveList">Belum ada langkah.</div>
-    <div class="engine-note" id="engineNote"></div>
-  </section>
-</main>
- <div id="footer"></div>
-  <script src="../js/loader.js"></script>
-<script>
-let board;
-let game = new Chess();
-let engine = null;
-let engineReady = false;
-let playerTime = 180;
-let aiTime = 180;
-let timer = null;
-let gameOver = false;
-let pendingAIMove = false;
-let gameStarted = false;
-
-// Kombinasi skill level (0-20) + depth per level, biar terasa lebih manusiawi
-// di level rendah dan benar-benar kuat di level atas.
-const levelConfig = {
-  1: { skill: 0,  depth: 2  },
-  2: { skill: 5,  depth: 4  },
-  3: { skill: 10, depth: 8  },
-  4: { skill: 15, depth: 12 },
-  5: { skill: 20, depth: 18 }
-};
-
-function setStatusText(text){
-  document.getElementById("gameStatus").innerText = text;
-}
-
-// --- Sound effects (Web Audio API, tanpa file eksternal) ---
-let audioCtx = null;
-let soundEnabled = true;
-
-function ensureAudioContext(){
-  if(!audioCtx){
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if(!AC) return;
-    audioCtx = new AC();
-  }
-  if(audioCtx.state === "suspended"){
-    audioCtx.resume();
-  }
-}
-
-function playTone(freq, duration, type, volume){
-  if(!soundEnabled || !audioCtx) return;
-
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-
-  osc.type = type || "sine";
-  osc.frequency.value = freq;
-
-  gain.gain.setValueAtTime(volume || 0.2, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.start();
-  osc.stop(audioCtx.currentTime + duration);
-}
-
-function playMoveTone(){
-  playTone(520, 0.09, "sine", 0.18);
-}
-
-function playCaptureTone(){
-  playTone(300, 0.12, "square", 0.16);
-}
-
-function playCheckTone(){
-  playTone(760, 0.14, "triangle", 0.22);
-  setTimeout(() => playTone(600, 0.14, "triangle", 0.18), 90);
-}
-
-function playGameOverTone(){
-  playTone(220, 0.25, "sawtooth", 0.2);
-  setTimeout(() => playTone(180, 0.35, "sawtooth", 0.18), 150);
-}
-
-function playStartTone(){
-  playTone(440, 0.1, "sine", 0.15);
-  setTimeout(() => playTone(660, 0.15, "sine", 0.15), 100);
-}
-
-function playSoundForMove(move){
-  if(!move) return;
-
-  if(game.game_over()){
-    playGameOverTone();
-  }else if(game.in_check()){
-    playCheckTone();
-  }else if(move.captured){
-    playCaptureTone();
-  }else{
-    playMoveTone();
-  }
-}
-
-function toggleSound(){
-  soundEnabled = !soundEnabled;
-  document.getElementById("soundToggleBtn").innerText = soundEnabled ? "🔊 Suara On" : "🔇 Suara Off";
-  if(soundEnabled) ensureAudioContext();
-}
-
-// Path lokal ke file engine yang sudah kamu self-host.
-// Download build single-file (asm.js, tanpa dependency wasm terpisah) dari:
-// https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js
-// lalu simpan sebagai data/chess/stockfish.js
-const ENGINE_PATH = "data/chess/stockfish.js";
-
-function initEngine(){
-  return new Promise((resolve, reject) => {
-    setStatusText("Memuat engine dari " + ENGINE_PATH + "...");
-
-    // Worker dibuat lewat Blob (bukan langsung dari URL file), supaya Worker
-    // ikut mewarisi Content-Security-Policy dari meta tag halaman ini
-    // (termasuk 'unsafe-eval' yang dibutuhkan build asm.js Stockfish).
-    // Worker dari URL file biasa TIDAK mewarisi CSP dari meta tag.
-    fetch(ENGINE_PATH)
-      .then(res => {
-        if(!res.ok) throw new Error("HTTP " + res.status + " saat mengambil " + ENGINE_PATH);
-        return res.text();
-      })
-      .then(code => {
-        if(!code || code.length < 500) throw new Error("Isi file " + ENGINE_PATH + " kosong/tidak valid.");
-
-        const blob = new Blob([code], { type: "application/javascript" });
-        engine = new Worker(URL.createObjectURL(blob));
-        attachEngineHandlers(resolve, reject);
-        engine.postMessage("uci");
-      })
-      .catch(err => {
-        console.error("Gagal memuat engine:", err);
-        setStatusText(
-          "Engine gagal dimuat: " + err.message + ". " +
-          "Cek apakah file " + ENGINE_PATH + " benar-benar ada di repo, dan halaman dibuka lewat server (http://), bukan file://."
-        );
-        reject(err);
-      });
-  });
-}
-
-function attachEngineHandlers(resolve, reject){
-    const readyTimeout = setTimeout(() => {
-      if(!engineReady){
-        reject(new Error(
-          "Engine timeout - tidak merespon setelah 15 detik. " +
-          "Cek apakah file " + ENGINE_PATH + " ada, dan pastikan halaman dibuka lewat server (http://), bukan dobel-klik file (file://)."
-        ));
-      }
-    }, 15000);
-
-    engine.onerror = function(err){
-      console.error("Engine worker error:", err.message || err);
-      clearTimeout(readyTimeout);
-      setStatusText(
-        "Engine error: file " + ENGINE_PATH + " tidak ditemukan / gagal dimuat. " +
-        "Cek Console (F12) untuk detail, dan pastikan path-nya benar."
-      );
-      reject(err);
+    const bots = {
+      1:{ name:"Piko", avatar:"🐣", style:"Teman pertama untuk belajar", description:"Piko bermain santai dan cocok untuk langkah pertamamu.", skill:0, depth:2 },
+      2:{ name:"Nara", avatar:"🦊", style:"Suka menyerang terlalu cepat", description:"Nara agresif, tetapi masih sering memberikan kesempatan.", skill:5, depth:4 },
+      3:{ name:"Bima", avatar:"🦁", style:"Tenang dan bermain seimbang", description:"Bima akan menguji pertahanan dan rencana permainanmu.", skill:10, depth:8 },
+      4:{ name:"Raka", avatar:"🐺", style:"Pertahanan kuat dan sabar", description:"Raka jarang memberi bidak secara cuma-cuma.", skill:15, depth:12 },
+      5:{ name:"Sang Guru", avatar:"🧙", style:"Ujian untuk calon juara", description:"Sang Guru melihat jauh ke depan. Bermainlah dengan hati-hati.", skill:20, depth:18 }
     };
 
-    engine.onmessage = function(event){
-      const line = event.data || "";
+    let board;
+    let game = new Chess();
+    let engine = null;
+    let engineReady = false;
+    let playerTime = 180;
+    let aiTime = 180;
+    let timer = null;
+    let gameOver = false;
+    let resultSaved = false;
+    let pendingAIMove = false;
+    let pendingCoachDecision = false;
+    let gameStarted = false;
+    let selectedSquare = null;
+    let soundEnabled = true;
+    let coachEnabled = true;
+    let audioCtx = null;
 
-      if(line === "uciok"){
-        engine.postMessage("isready");
-        return;
+    function $(id){
+      return document.getElementById(id);
+    }
+
+    function setStatusText(text, ready){
+      $("gameStatus").textContent = text;
+      $("statusBanner").classList.toggle("ready", Boolean(ready));
+    }
+
+    function setCoach(label, text){
+      $("coachLabel").textContent = label;
+      $("coachText").textContent = text;
+    }
+
+    function getSelectedBot(){
+      return bots[$("level").value] || bots[1];
+    }
+
+    function updateBotUI(){
+      const bot = getSelectedBot();
+      $("botAvatar").textContent = bot.avatar;
+      $("botName").textContent = bot.name;
+      $("botStyle").textContent = bot.style;
+      $("startAvatar").textContent = bot.avatar;
+      $("startTitle").textContent = "Lawan " + bot.name;
+      $("startDescription").textContent = bot.description;
+    }
+
+    function readLevelFromUrl(){
+      const value = Number(new URLSearchParams(location.search).get("level"));
+      if(bots[value]) $("level").value = String(value);
+      updateBotUI();
+    }
+
+    function ensureAudioContext(){
+      if(!audioCtx){
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if(!AudioContextClass) return;
+        audioCtx = new AudioContextClass();
       }
+      if(audioCtx.state === "suspended") audioCtx.resume();
+    }
 
-      if(line === "readyok" && !engineReady){
-        engineReady = true;
-        clearTimeout(readyTimeout);
-        resolve();
-        return;
+    function playTone(frequency,duration,type,volume){
+      if(!soundEnabled) return;
+      ensureAudioContext();
+      if(!audioCtx) return;
+
+      const oscillator = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      oscillator.type = type || "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(volume || .16,audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime + duration);
+      oscillator.connect(gain);
+      gain.connect(audioCtx.destination);
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + duration);
+    }
+
+    function playMoveSound(move){
+      if(!move) return;
+      if(game.game_over()){
+        playTone(220,.24,"sawtooth",.18);
+      }else if(game.in_check()){
+        playTone(760,.13,"triangle",.2);
+        setTimeout(function(){ playTone(600,.13,"triangle",.16); },90);
+      }else if(move.captured){
+        playTone(300,.12,"square",.14);
+      }else{
+        playTone(520,.09,"sine",.15);
       }
+    }
 
-      if(line.startsWith("bestmove")){
-        const moveText = line.split(" ")[1];
+    function toggleSound(){
+      soundEnabled = !soundEnabled;
+      $("soundToggle").classList.toggle("on",soundEnabled);
+      $("soundToggle").setAttribute("aria-checked",String(soundEnabled));
+      $("soundHeaderBtn").textContent = soundEnabled ? "🔊" : "🔇";
+      if(soundEnabled) playTone(620,.08,"sine",.12);
+    }
 
-        if(moveText && moveText !== "(none)"){
-          const aiMove = game.move({
-            from: moveText.substring(0,2),
-            to: moveText.substring(2,4),
-            promotion: "q"
+    function toggleCoach(){
+      coachEnabled = !coachEnabled;
+      $("coachToggle").classList.toggle("on",coachEnabled);
+      $("coachToggle").setAttribute("aria-checked",String(coachEnabled));
+      setCoach(coachEnabled ? "PELATIH AKTIF" : "PELATIH NONAKTIF",coachEnabled
+        ? "Aku akan memperingatkanmu jika bidak berharga kemungkinan langsung dapat dimakan."
+        : "Kamu bermain tanpa peringatan kesempatan kedua.");
+    }
+
+    function toggleSideCard(id){
+      const card = $(id);
+      if(!card) return;
+      const willOpen = !card.classList.contains("mobile-open");
+      document.querySelectorAll(".settings-card,.moves-card").forEach(function(item){
+        item.classList.remove("mobile-open");
+      });
+      if(willOpen) card.classList.add("mobile-open");
+      if(window.innerWidth < 681 && willOpen){
+        setTimeout(function(){ card.scrollIntoView({behavior:"smooth",block:"start"}); },40);
+      }
+    }
+
+    function applyTheme(){
+      document.body.classList.remove("theme-classic","theme-green","theme-blue","theme-gold");
+      document.body.classList.add("theme-" + $("theme").value);
+      if(board) board.resize();
+    }
+
+    function initEngine(){
+      return new Promise(function(resolve,reject){
+        setStatusText("Sedang memuat mesin catur…",false);
+
+        fetch(ENGINE_PATH)
+          .then(function(response){
+            if(!response.ok) throw new Error("HTTP " + response.status);
+            return response.text();
+          })
+          .then(function(code){
+            if(!code || code.length < 500) throw new Error("File engine tidak valid");
+            const blob = new Blob([code],{type:"application/javascript"});
+            engine = new Worker(URL.createObjectURL(blob));
+            attachEngineHandlers(resolve,reject);
+            engine.postMessage("uci");
+          })
+          .catch(function(error){
+            setStatusText("Mesin catur gagal dimuat. Silakan muat ulang halaman.",false);
+            reject(error);
           });
-          playSoundForMove(aiMove);
+      });
+    }
+
+    function attachEngineHandlers(resolve,reject){
+      const readyTimeout = setTimeout(function(){
+        if(!engineReady) reject(new Error("Engine timeout"));
+      },15000);
+
+      engine.onerror = function(error){
+        clearTimeout(readyTimeout);
+        setStatusText("Mesin catur mengalami kesalahan.",false);
+        reject(error);
+      };
+
+      engine.onmessage = function(event){
+        const line = event.data || "";
+
+        if(line === "uciok"){
+          engine.postMessage("isready");
+          return;
         }
 
-        board.position(game.fen());
-        pendingAIMove = false;
-        updateStatus();
-        updateMoveList();
-        updateActiveCard();
-      }
-    };
-}
+        if(line === "readyok" && !engineReady){
+          engineReady = true;
+          clearTimeout(readyTimeout);
+          resolve();
+          return;
+        }
 
-function removeLegalHighlights(){
-  $("#board .square-55d63").removeClass("legal-move-highlight");
-}
+        if(line.indexOf("bestmove") === 0){
+          const moveText = line.split(" ")[1];
+          let aiMove = null;
 
-function highlightLegalMoves(square){
-  const moves = game.moves({ square: square, verbose: true });
-  if(moves.length === 0) return;
+          if(moveText && moveText !== "(none)"){
+            aiMove = game.move({
+              from:moveText.substring(0,2),
+              to:moveText.substring(2,4),
+              promotion:"q"
+            });
+          }
 
-  $("#board .square-" + square).addClass("legal-move-highlight");
-  moves.forEach(m => {
-    $("#board .square-" + m.to).addClass("legal-move-highlight");
-  });
-}
+          board.position(game.fen());
+          markLastMove(aiMove);
+          pendingAIMove = false;
+          playMoveSound(aiMove);
+          updateGameUI();
+        }
+      };
+    }
 
-let selectedSquare = null;
+    function clearBoardHighlights(){
+      window.jQuery("#board .square-55d63").removeClass("legal-move-highlight selected-square lifted-piece");
+    }
 
-function clearSelection(){
-  selectedSquare = null;
-  removeLegalHighlights();
-  $("#board .square-55d63").removeClass("selected-square lifted-piece");
-}
+    function clearLastMove(){
+      window.jQuery("#board .square-55d63").removeClass("last-move-square");
+    }
 
-function selectSquare(square){
-  clearSelection();
+    function markLastMove(move){
+      clearLastMove();
+      if(!move) return;
+      window.jQuery("#board .square-" + move.from + ",#board .square-" + move.to).addClass("last-move-square");
+    }
 
-  const piece = game.get(square);
+    function highlightLegalMoves(square){
+      const moves = game.moves({square:square,verbose:true});
+      if(!moves.length) return;
+      window.jQuery("#board .square-" + square).addClass("legal-move-highlight");
+      moves.forEach(function(move){
+        window.jQuery("#board .square-" + move.to).addClass("legal-move-highlight");
+      });
+    }
 
-  if(!piece) return;
-  if(piece.color !== "w") return;
-  if(game.turn() !== "w") return;
-  if(!gameStarted || gameOver || !engineReady || pendingAIMove) return;
+    function clearSelection(){
+      selectedSquare = null;
+      clearBoardHighlights();
+    }
 
-  selectedSquare = square;
-
-  $("#board .square-" + square).addClass("selected-square lifted-piece");
-  highlightLegalMoves(square);
-}
-
-function tryMove(targetSquare){
-  if(!selectedSquare) return;
-
-  const move = game.move({
-    from: selectedSquare,
-    to: targetSquare,
-    promotion: "q"
-  });
-
-  if(move === null){
-    const targetPiece = game.get(targetSquare);
-
-    if(targetPiece && targetPiece.color === "w"){
-      selectSquare(targetSquare);
-    }else{
+    function selectSquare(square){
       clearSelection();
+      const piece = game.get(square);
+      if(!piece || piece.color !== "w" || game.turn() !== "w") return;
+      if(!gameStarted || gameOver || !engineReady || pendingAIMove || pendingCoachDecision) return;
+
+      selectedSquare = square;
+      window.jQuery("#board .square-" + square).addClass("selected-square lifted-piece");
+      highlightLegalMoves(square);
+      setCoach("PILIH TUJUAN","Kotak berwarna hijau adalah langkah legal untuk bidak ini.");
     }
 
-    return;
-  }
+    function findImmediateDanger(playerMove){
+      if(!coachEnabled || game.game_over()) return null;
+      const movedValue = PIECE_VALUES[playerMove.piece] || 0;
+      if(movedValue < 3) return null;
 
-  clearSelection();
-  board.position(game.fen());
+      const replies = game.moves({verbose:true});
+      const captures = replies.filter(function(reply){
+        return reply.to === playerMove.to && Boolean(reply.captured);
+      });
 
-  playSoundForMove(move);
-  updateStatus();
-  updateMoveList();
-  updateActiveCard();
+      if(!captures.length) return null;
 
-  window.setTimeout(makeAIMove, 350);
-}
+      captures.sort(function(a,b){
+        const attackerA = game.get(a.from);
+        const attackerB = game.get(b.from);
+        return (PIECE_VALUES[attackerA && attackerA.type] || 99) - (PIECE_VALUES[attackerB && attackerB.type] || 99);
+      });
 
-function onSquareClick(square){
-  if(!selectedSquare){
-    selectSquare(square);
-    return;
-  }
+      const reply = captures[0];
+      const attacker = game.get(reply.from);
+      const attackerValue = PIECE_VALUES[attacker && attacker.type] || 99;
+      if(playerMove.piece !== "q" && movedValue - attackerValue < 2) return null;
 
-  if(selectedSquare === square){
-    clearSelection();
-    return;
-  }
+      const names = {n:"kuda",b:"gajah",r:"benteng",q:"ratu",k:"raja"};
+      return {
+        piece:names[playerMove.piece] || "bidak",
+        attacker:names[attacker && attacker.type] || "bidak lawan"
+      };
+    }
 
-  tryMove(square);
-}
+    function tryMove(targetSquare){
+      if(!selectedSquare) return;
 
-$("#board").on("click", ".square-55d63", function(){
-  const classes = $(this).attr("class");
-  const match = classes.match(/square-([a-h][1-8])/);
-
-  if(!match) return;
-
-  onSquareClick(match[1]);
-});
-  
-function makeAIMove(){
-  if(game.game_over() || !engineReady) return updateStatus();
-
-  pendingAIMove = true;
-
-  const level = document.getElementById("level").value;
-  const config = levelConfig[level];
-
-  engine.postMessage("setoption name Skill Level value " + config.skill);
-  engine.postMessage("position fen " + game.fen());
-  engine.postMessage("go depth " + config.depth);
-}
-
-function updateStatus(){
-  let status = "";
-
-  if(game.in_checkmate()){
-    gameOver = true;
-    status = game.turn() === "w" ? "Skakmat. AI menang." : "Skakmat. Kamu menang!";
-    clearInterval(timer);
-  }else if(game.in_draw()){
-    gameOver = true;
-    status = "Game seri.";
-    clearInterval(timer);
-  }else{
-    status = game.turn() === "w" ? "Giliran kamu." : "AI sedang berpikir...";
-    if(game.in_check()) status += " Raja sedang skak!";
-  }
-
-  setStatusText(status);
-}
-
-function updateActiveCard(){
-  document.getElementById("whiteCard").classList.toggle("active", game.turn() === "w" && !gameOver);
-  document.getElementById("blackCard").classList.toggle("active", game.turn() === "b" && !gameOver);
-}
-
-function updateMoveList(){
-  const history = game.history();
-  if(history.length === 0){
-    document.getElementById("moveList").innerText = "Belum ada langkah.";
-    return;
-  }
-
-  let html = "";
-  for(let i=0;i<history.length;i+=2){
-    html += ((i/2)+1) + ". " + history[i] + " " + (history[i+1] || "") + "<br>";
-  }
-  document.getElementById("moveList").innerHTML = html;
-}
-
-function formatTime(sec){
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
-}
-
-function updateClock(){
-  document.getElementById("whiteTime").innerText = formatTime(playerTime);
-  document.getElementById("blackTime").innerText = formatTime(aiTime);
-}
-
-function startTimer(){
-  if(playerTime === 0 && aiTime === 0){
-    return;
-}
-  clearInterval(timer);
-  timer = setInterval(() => {
-    if(gameOver) return;
-
-    if(game.turn() === "w"){
-      playerTime--;
-      if(playerTime <= 0){
-        gameOver = true;
-        setStatusText("Waktu habis. AI menang.");
-        clearInterval(timer);
-        playGameOverTone();
+      const move = game.move({from:selectedSquare,to:targetSquare,promotion:"q"});
+      if(move === null){
+        const targetPiece = game.get(targetSquare);
+        if(targetPiece && targetPiece.color === "w") selectSquare(targetSquare);
+        else clearSelection();
+        return;
       }
-    }else{
-      aiTime--;
-      if(aiTime <= 0){
-        gameOver = true;
-        setStatusText("Waktu AI habis. Kamu menang!");
-        clearInterval(timer);
-        playGameOverTone();
+
+      clearSelection();
+      board.position(game.fen());
+      markLastMove(move);
+      playMoveSound(move);
+      updateMoveList();
+      updateActivePlayer();
+
+      const danger = findImmediateDanger(move);
+      if(danger){
+        pendingCoachDecision = true;
+        $("coachActions").classList.add("show");
+        setCoach("PERIKSA LAGI","Setelah langkah ini, " + danger.piece + " kamu kemungkinan dapat langsung dimakan oleh " + danger.attacker + ". Mau mencoba langkah lain?");
+        setStatusText("Pelatih menemukan kemungkinan bidakmu tergantung.",false);
+        return;
+      }
+
+      setCoach("LANGKAH DIMAINKAN","Bagus, sekarang perhatikan jawaban " + getSelectedBot().name + ".");
+      setStatusText(getSelectedBot().name + " sedang berpikir…",false);
+      setTimeout(makeAIMove,320);
+    }
+
+    function onSquareClick(square){
+      if(!selectedSquare){
+        selectSquare(square);
+      }else if(selectedSquare === square){
+        clearSelection();
+      }else{
+        tryMove(square);
       }
     }
 
-    updateClock();
-  },1000);
-}
+    function retryMove(){
+      if(!pendingCoachDecision) return;
+      game.undo();
+      pendingCoachDecision = false;
+      $("coachActions").classList.remove("show");
+      board.position(game.fen());
+      clearLastMove();
+      updateMoveList();
+      updateActivePlayer();
+      setCoach("COBA LAGI","Cari kotak aman atau lindungi bidak tersebut sebelum menyerang.");
+      setStatusText("Giliran kamu. Pilih langkah yang lebih aman.",true);
+    }
 
-  function toggleSettings(){
-    document
-        .getElementById("settingsPanel")
-        .classList.toggle("hide");
-}
+    function continueMove(){
+      if(!pendingCoachDecision) return;
+      pendingCoachDecision = false;
+      $("coachActions").classList.remove("show");
+      setCoach("TETAP LANJUT","Baik, kita lihat bagaimana lawan menjawab langkah itu.");
+      setStatusText(getSelectedBot().name + " sedang berpikir…",false);
+      setTimeout(makeAIMove,220);
+    }
 
-function applyTheme(){
-  document.body.classList.remove("theme-classic","theme-green","theme-blue","theme-gold");
-  document.body.classList.add("theme-" + document.getElementById("theme").value);
-}
+    function makeAIMove(){
+      if(game.game_over() || !engineReady) return updateGameUI();
+      pendingAIMove = true;
+      const bot = getSelectedBot();
+      engine.postMessage("setoption name Skill Level value " + bot.skill);
+      engine.postMessage("position fen " + game.fen());
+      engine.postMessage("go depth " + bot.depth);
+    }
 
-function newGame(){
+    function updateActivePlayer(){
+      $("whiteCard").classList.toggle("active",game.turn() === "w" && !gameOver);
+      $("blackCard").classList.toggle("active",game.turn() === "b" && !gameOver);
+    }
 
-  if(!engineReady){
-    setStatusText("Menunggu engine siap...");
-    return;
-  }
+    function updateMoveList(){
+      const history = game.history();
+      $("moveCount").textContent = history.length + " langkah";
+      $("emptyMoves").style.display = history.length ? "none" : "block";
 
-  gameStarted = true;
+      let html = "";
+      for(let index=0;index<history.length;index+=2){
+        html += '<span class="move-number">' + ((index / 2) + 1) + '.</span>';
+        html += '<span>' + history[index] + '</span>';
+        html += '<span>' + (history[index + 1] || "") + '</span>';
+      }
+      $("moveList").innerHTML = html;
+    }
 
-  document.getElementById("settingsPanel").classList.add("hide");
-  document.getElementById("startOverlay").classList.add("hidden");
+    function saveResult(result){
+      if(resultSaved) return;
+      resultSaved = true;
 
-  ensureAudioContext();
-  playStartTone();
+      let stats;
+      try{
+        stats = JSON.parse(localStorage.getItem("langkahJuaraStats")) || {};
+      }catch(error){
+        stats = {};
+      }
 
-  game = new Chess();
-  gameOver = false;
-  pendingAIMove = false;
+      stats.games = Number(stats.games || 0) + 1;
+      stats.wins = Number(stats.wins || 0) + (result === "win" ? 1 : 0);
+      stats.lastPlayed = new Date().toISOString();
+      localStorage.setItem("langkahJuaraStats",JSON.stringify(stats));
+    }
 
-  clearSelection();
-  board.position("start");
+    function updateGameUI(){
+      let status;
 
-  const selectedTime = Number(document.getElementById("timeMode").value);
+      if(game.in_checkmate()){
+        gameOver = true;
+        clearInterval(timer);
+        const playerWon = game.turn() === "b";
+        status = playerWon ? "Skakmat! Kamu menang melawan " + getSelectedBot().name + "." : "Skakmat. " + getSelectedBot().name + " menang kali ini.";
+        setCoach(playerWon ? "HEBAT!" : "JANGAN MENYERAH",playerWon ? "Kamu berhasil menyelesaikan permainan dengan skakmat." : "Setiap kekalahan menyimpan pola baru yang bisa kamu pelajari.");
+        saveResult(playerWon ? "win" : "loss");
+      }else if(game.in_draw()){
+        gameOver = true;
+        clearInterval(timer);
+        status = "Permainan berakhir seri.";
+        setCoach("HASIL SERI","Pertahananmu cukup kuat untuk menjaga permainan tetap seimbang.");
+        saveResult("draw");
+      }else{
+        status = game.turn() === "w" ? "Giliran kamu." : getSelectedBot().name + " sedang berpikir…";
+        if(game.in_check()) status += " Raja sedang skak!";
+        if(game.turn() === "w") setCoach("GILIRANMU",game.in_check() ? "Rajamu sedang diserang. Lindungi raja atau keluar dari skak." : "Periksa ancaman lawan sebelum memilih langkah berikutnya.");
+      }
 
-  playerTime = selectedTime;
-  aiTime = selectedTime;
+      setStatusText(status,!gameOver && game.turn() === "w");
+      updateMoveList();
+      updateActivePlayer();
+    }
 
-  clearInterval(timer);
+    function formatTime(seconds){
+      const minutes = Math.floor(seconds / 60);
+      const rest = seconds % 60;
+      return String(minutes).padStart(2,"0") + ":" + String(rest).padStart(2,"0");
+    }
 
-  if(selectedTime === 0){
-    document.getElementById("whiteTime").innerText = "∞";
-    document.getElementById("blackTime").innerText = "∞";
-  }else{
-    updateClock();
-    startTimer();
-  }
+    function renderClock(){
+      if(playerTime === 0 && aiTime === 0){
+        $("whiteTime").textContent = "∞";
+        $("blackTime").textContent = "∞";
+      }else{
+        $("whiteTime").textContent = formatTime(Math.max(0,playerTime));
+        $("blackTime").textContent = formatTime(Math.max(0,aiTime));
+      }
+    }
 
-  updateStatus();
-  updateMoveList();
-  updateActiveCard();
-}
-  board = Chessboard("board", {
-  draggable:false,
-  position:"start",
-  pieceTheme:"data/chess/img/chesspieces/wikipedia/{piece}.png"
-});
+    function startTimer(){
+      clearInterval(timer);
+      if(playerTime === 0 && aiTime === 0) return;
 
-  applyTheme();
-  
-// Disable kontrol sampai engine siap, supaya user tidak main sebelum AI bisa jalan
-document.getElementById("newGameBtn").disabled = true;
+      timer = setInterval(function(){
+        if(gameOver || pendingCoachDecision) return;
 
-initEngine()
-  .then(() => {
-    document.getElementById("newGameBtn").disabled = false;
-    document.getElementById("engineNote").innerText = "Engine: Stockfish 10 (self-hosted)";
+        if(game.turn() === "w"){
+          playerTime--;
+          if(playerTime <= 0){
+            playerTime = 0;
+            gameOver = true;
+            clearInterval(timer);
+            setStatusText("Waktumu habis. " + getSelectedBot().name + " menang.",false);
+            setCoach("WAKTU HABIS","Tidak apa-apa. Coba mode tanpa waktu untuk berlatih lebih tenang.");
+            saveResult("loss");
+          }
+        }else{
+          aiTime--;
+          if(aiTime <= 0){
+            aiTime = 0;
+            gameOver = true;
+            clearInterval(timer);
+            setStatusText("Waktu " + getSelectedBot().name + " habis. Kamu menang!",false);
+            setCoach("KAMU MENANG","Kamu menjaga waktumu lebih baik daripada lawan.");
+            saveResult("win");
+          }
+        }
 
-    const startBtn = document.getElementById("startBtn");
-    startBtn.disabled = false;
-    startBtn.innerText = "Mulai Main";
-    setStatusText("Engine siap. Klik \"Mulai Main\" untuk memulai.");
-  })
-  .catch((err) => {
-    console.error(err);
-    document.getElementById("engineNote").innerText = "Engine gagal dimuat — cek path file & Console (F12).";
-  });
-</script>
+        renderClock();
+        updateActivePlayer();
+      },1000);
+    }
+
+    function newGame(){
+      if(!engineReady){
+        setStatusText("Tunggu sampai mesin catur siap.",false);
+        return;
+      }
+
+      game = new Chess();
+      gameStarted = true;
+      gameOver = false;
+      resultSaved = false;
+      pendingAIMove = false;
+      pendingCoachDecision = false;
+      selectedSquare = null;
+
+      clearInterval(timer);
+      clearSelection();
+      clearLastMove();
+      $("coachActions").classList.remove("show");
+      $("startOverlay").classList.add("hidden");
+
+      const selectedTime = Number($("timeMode").value);
+      playerTime = selectedTime;
+      aiTime = selectedTime;
+      board.position("start");
+      renderClock();
+      startTimer();
+      updateBotUI();
+      updateMoveList();
+      updateActivePlayer();
+      setStatusText("Giliran kamu. Putih berjalan lebih dulu.",true);
+      setCoach("LANGKAH PERTAMA","Kuasai bagian tengah papan dan keluarkan kuda atau gajah lebih awal.");
+      ensureAudioContext();
+      playTone(440,.08,"sine",.12);
+      setTimeout(function(){ playTone(660,.12,"sine",.12); },90);
+    }
+
+    window.jQuery("#board").on("click",".square-55d63",function(){
+      const classes = window.jQuery(this).attr("class") || "";
+      const match = classes.match(/square-([a-h][1-8])/);
+      if(match) onSquareClick(match[1]);
+    });
+
+    $("level").addEventListener("change",updateBotUI);
+    $("theme").addEventListener("change",applyTheme);
+
+    readLevelFromUrl();
+
+    board = Chessboard("board",{
+      draggable:false,
+      position:"start",
+      pieceTheme:PIECE_PATH,
+      showNotation:true
+    });
+
+    applyTheme();
+    renderClock();
+    updateMoveList();
+
+    let resizeTimer;
+    window.addEventListener("resize",function(){
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function(){
+        if(board) board.resize();
+      },120);
+    });
+
+    $("newGameBtn").disabled = true;
+
+    initEngine()
+      .then(function(){
+        $("newGameBtn").disabled = false;
+        $("startBtn").disabled = false;
+        $("startBtn").textContent = "Mulai bermain";
+        $("engineNote").textContent = "Stockfish siap • berjalan di perangkatmu";
+        setStatusText("Mesin siap. Klik Mulai bermain.",true);
+      })
+      .catch(function(error){
+        console.error(error);
+        $("startBtn").textContent = "Mesin gagal dimuat";
+        $("engineNote").textContent = "Gagal memuat Stockfish. Muat ulang halaman untuk mencoba lagi.";
+      });
+  </script>
 </body>
 </html>
