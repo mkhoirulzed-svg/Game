@@ -22,8 +22,8 @@
       <nav class="side-nav">
         <a class="nav-link active" href="index.html"><span>⌂</span>Beranda</a>
         <a class="nav-link" href="games/chess.html"><span>♟</span>Main</a>
-        <button class="nav-link is-locked" type="button" data-coming-soon><span>◇</span>Belajar</button>
-        <button class="nav-link is-locked" type="button" data-coming-soon><span>◎</span>Profil</button>
+        <a class="nav-link" href="belajar.html"><span>◇</span>Belajar</a>
+        <a class="nav-link" href="profil.html"><span>◎</span>Profil</a>
       </nav>
 
       <div class="sidebar-tip">
@@ -38,9 +38,7 @@
           <p class="eyebrow">SELAMAT DATANG</p>
           <h1>Siap melangkah hari ini?</h1>
         </div>
-        <button class="profile-button" type="button" data-coming-soon aria-label="Buka profil">
-          <span>♟</span>
-        </button>
+        <a class="profile-button" href="profil.html" aria-label="Buka profil"><span>♟</span></a>
       </header>
 
       <section class="hero-card">
@@ -50,7 +48,7 @@
           <p>Main melawan pelatih catur, dapatkan kesempatan kedua, dan pahami alasan di balik setiap langkah.</p>
           <div class="hero-actions">
             <a class="button button-primary" href="games/chess.html">▶ Mulai bermain</a>
-            <button class="button button-ghost" type="button" data-coming-soon>Pelajari dasar</button>
+            <a class="button button-ghost" href="belajar.html">Pelajari dasar</a>
           </div>
         </div>
         <div class="hero-visual" aria-hidden="true">
@@ -69,7 +67,7 @@
               <p class="eyebrow">LATIHAN SINGKAT</p>
               <h2>Misi hari ini</h2>
             </div>
-            <span class="streak">🔥 1 hari</span>
+            <a class="streak" href="riwayat.html" style="text-decoration:none">☷ Riwayat</a>
           </div>
 
           <div class="mission-card">
@@ -92,16 +90,14 @@
             </div>
           </div>
           <div class="level-summary">
-            <div class="level-ring"><span>1</span></div>
+            <div class="level-ring"><span data-level>1</span></div>
             <div>
               <strong>Pemula</strong>
               <p>Mulai petualangan caturnya.</p>
             </div>
           </div>
           <div class="stat-row">
-            <div><strong>0</strong><span>Permainan</span></div>
-            <div><strong>0</strong><span>Kemenangan</span></div>
-            <div><strong>0</strong><span>Pelajaran</span></div>
+            <div><strong data-stat="games">0</strong><span>Permainan</span></div><div><strong data-stat="wins">0</strong><span>Kemenangan</span></div><div><strong data-lesson-count>0</strong><span>Pelajaran</span></div>
           </div>
         </section>
       </div>
@@ -143,24 +139,24 @@
         </div>
 
         <div class="lesson-track">
-          <button class="lesson-card current" type="button" data-coming-soon>
+          <a class="lesson-card current" href="pelajaran.html?lesson=pion">
             <span class="lesson-number">01</span>
             <span class="lesson-icon">♙</span>
             <span><strong>Desa Pion</strong><small>Kenali papan dan bidak</small></span>
             <b>Mulai</b>
-          </button>
-          <button class="lesson-card locked" type="button" data-coming-soon>
+          </a>
+          <a class="lesson-card" href="pelajaran.html?lesson=kuda">
             <span class="lesson-number">02</span>
             <span class="lesson-icon">♘</span>
             <span><strong>Hutan Kuda</strong><small>Kuasai langkah istimewa</small></span>
             <b>🔒</b>
-          </button>
-          <button class="lesson-card locked" type="button" data-coming-soon>
+          </a>
+          <a class="lesson-card" href="pelajaran.html?lesson=raja">
             <span class="lesson-number">03</span>
             <span class="lesson-icon">♔</span>
             <span><strong>Istana Raja</strong><small>Skak dan skakmat</small></span>
             <b>🔒</b>
-          </button>
+          </a>
         </div>
       </section>
     </main>
@@ -169,23 +165,9 @@
   <nav class="mobile-nav" aria-label="Navigasi seluler">
     <a class="active" href="index.html"><span>⌂</span>Beranda</a>
     <a href="games/chess.html"><span>♟</span>Main</a>
-    <button type="button" data-coming-soon><span>◇</span>Belajar</button>
-    <button type="button" data-coming-soon><span>◎</span>Profil</button>
+    <a href="belajar.html"><span>◇</span>Belajar</a>
+    <a href="profil.html"><span>◎</span>Profil</a>
   </nav>
-
-  <div class="toast" id="comingSoonToast" role="status" aria-live="polite">Fitur ini sedang kami siapkan.</div>
-
-  <script>
-    const toast = document.getElementById("comingSoonToast");
-    let toastTimer;
-
-    document.querySelectorAll("[data-coming-soon]").forEach(button => {
-      button.addEventListener("click", () => {
-        toast.classList.add("show");
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
-      });
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
